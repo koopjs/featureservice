@@ -40,6 +40,25 @@ service.statistics('id', ['min', 'max'], function (err, stats) {
 ### pages(callback)
 Returns an array of page urls that would get every feature in the service
 
+## Browser
+
+A browser ready build of this module is in `dist/featureservice.min.js` and is built via the command `npm run build`
+
+Example usages
+
+```html
+<html>
+  <script src="dist/featureservice.js"></script>
+  <script>
+    var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
+    service.statistics('id', ['max'], function (err, stats) { 
+      console.log(err, stats)
+    })
+  </script>
+</html>
+
+```
+
 ## Todo
 
 * Expose a stream of feature instead of page chuncks
