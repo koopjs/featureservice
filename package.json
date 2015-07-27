@@ -1,7 +1,7 @@
 {
   "name": "featureservice",
   "description": "a node module meant to extract every feature from an Esri geo-service thing",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Chris Helm",
   "bugs": {
     "url": "https://github.com/chelm/featureservice/issues"
@@ -11,10 +11,15 @@
     "request": "^2.60.0"
   },
   "devDependencies": {
+    "browserify": "^11.0.0",
+    "http-browserify": "^1.7.0",
+    "https-browserify": "0.0.0",
+    "minifyify": "^7.0.3",
     "sinon": "^1.15.4",
     "standard": "^4.5.4",
     "tap-spec": "^4.0.2",
-    "tape": "^4.0.1"
+    "tape": "^4.0.1",
+    "zlib-browserify": "0.0.3"
   },
   "homepage": "https://github.com/chelm/featureservice",
   "keywords": [
@@ -29,6 +34,7 @@
     "url": "https://github.com/chelm/featureservice.git"
   },
   "scripts": {
-    "test": "standard && tape test/*.js | tap-spec"
+    "test": "standard index.js && tape test/*.js | tap-spec",
+    "build": "browserify -d index.js -s FeatureService -p [minifyify --map featureservice.map.json --output featureservice.map.json] > dist/featureservice.min.js"
   }
 }

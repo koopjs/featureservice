@@ -1,17 +1,12 @@
 // A module designed to talk to feature services and get every feature
 // this code will expose methods for getting the URL to each page
-var request = require('request')
-var async = require('async')
+
+// var request = require('browser-request')
+var queue = require('async').queue
 var http = require('http')
 var https = require('https')
 var zlib = require('zlib')
-var url = require('url')
-
-// easy reference to a protocol type
-var protocols = {
-  http: http,
-  https: https
-}
+var urlUtils = require('url')
 
 /**
  * A feature service object needs a url and some optional params to make requests
@@ -34,9 +29,15 @@ var FeatureService = function (url, options) {
   this.layer = options.layer || 0
 
   // an async for requesting pages of data
-  this.pageQueue = async.queue(function (task, callback) {
+  this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
   }.bind(this), (this.url.split('//')[1].match(/^service/)) ? 16 : 4)
+
+  // easy reference to a protocol type
+  this.protocols = {
+    http: http,
+    https: https
+  }
 
   return this
 }
@@ -47,7 +48,45 @@ var FeatureService = function (url, options) {
  * @param {function} callback
  */
 FeatureService.prototype.request = function (url, callback) {
-  request.get(url, callback)
+  var uri = urlUtils.parse(encodeURI(decodeURI(url)))
+
+  var opts = {
+    method: 'GET',
+    port: (uri.protocol === 'https:') ? 443 : uri.port || 80,
+    hostname: uri.hostname,
+    path: uri.path,
+    headers: {
+      'User-Agent': 'featureservices-node'
+    }
+  }
+
+  // make an http or https request based on the protocol
+  var req = ((uri.protocol === 'https:') ? this.protocols.https : this.protocols.http).request(opts, function (response) {
+    var data = []
+    response.on('data', function (chunk) {
+      data.push(chunk)
+    })
+
+    response.on('error', function (err) {
+      callback(err)
+    })
+
+    response.on('end', function () {
+      var buffer = Buffer.concat(data)
+      try {
+        callback(null, JSON.parse(buffer.toString()))
+      } catch (e) {
+        callback(e)
+      }
+    })
+
+  })
+
+  req.on('error', function (error) {
+    callback(error)
+  })
+
+  req.end()
 }
 
 /**
@@ -73,13 +112,21 @@ FeatureService.prototype._statsUrl = function (field, stats) {
 
 /**
  * Gets the feature service info
+ * @param {string} field - the name of a field to build a stat request for
+ * @param {array} stats - an array of stats to request: ['min', 'max', 'avg', 'stddev', 'count']
+ */
+FeatureService.prototype.statistics = function (field, stats, callback) {
+  this.request(this._statsUrl(field, stats), callback)
+}
+
+/**
+ * Gets the feature service info
  * @param {function} callback - called when the service info comes back
  */
 FeatureService.prototype.layerInfo = function (callback) {
   var url = this.url + '/' + this.layer + '?f=json'
-  this.request(url, function (err, res) {
+  this.request(url, function (err, json) {
     try {
-      var json = JSON.parse(res.body)
       json.url = url
     } catch (e) {
       err = 'failed to parse service info: ' + e
@@ -93,8 +140,7 @@ FeatureService.prototype.layerInfo = function (callback) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.layerIds = function (callback) {
-  this.request(this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json', function (err, res) {
-    var json = JSON.parse(res.body)
+  this.request(this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json', function (err, json) {
     callback(err, json.objectIds)
   })
 }
@@ -132,9 +178,8 @@ FeatureService.prototype.pages = function (callback) {
 
       // build where clause based pages
       if (serviceInfo.supportsStatistics) {
-        var statsUrl = this._statsUrl(serviceInfo.objectIdField)
 
-        this.request(statsUrl, function (err, res) {
+        this.request(this._statsUrl(serviceInfo.objectIdField), function (err, res) {
           if (err) {
             return callback(err)
           }
@@ -143,14 +188,12 @@ FeatureService.prototype.pages = function (callback) {
             var stats = JSON.parse(res.body)
             if (stats.error) {
               try {
-                // DMF: if stats fail, try to grab all the object IDs
                 var idUrl = this.url + '/' + (this.layer || 0) + '/query?where=1=1&returnIdsOnly=true&f=json'
-                this.request(idUrl, function (err, res) {
+                this.request(idUrl, function (err, idJson) {
                   if (err) {
                     return callback(err)
                   }
 
-                  var idJson = JSON.parse(res.body)
                   var minID, maxID
                   if (idJson.error) {
                     // DMF: if grabbing objectIDs fails fall back to guessing based on 0 and count
@@ -205,27 +248,16 @@ FeatureService.prototype.featureCount = function (callback) {
   var countUrl = this.url + '/' + (this.options.layer || 0)
   countUrl += '/query?where=1=1&returnIdsOnly=true&returnCountOnly=true&f=json'
 
-  this.request(countUrl, function (err, response) {
+  this.request(countUrl, function (err, json) {
     if (err) {
       return callback(err)
-    }
-
-    if (!response || !response.body) {
-      return callback('Unknown layer, make sure the layer you requested exists')
-    }
-
-    var json
-    try {
-      json = JSON.parse(response.body)
-    } catch (e) {
-      json = { error: e }
     }
 
     if (json.error) {
       return callback(json.error.message + ': ' + countUrl, null)
     }
 
-    callback(null, json.count)
+    callback(null, json)
   })
 }
 
@@ -263,7 +295,6 @@ FeatureService.prototype._idPages = function (ids, maxCount) {
   var where
   var pageUrl
 
-  url = this.url
   var objId = this.options.objectIdField || 'objectId'
   var pages = (ids.length / maxCount)
 
@@ -271,7 +302,7 @@ FeatureService.prototype._idPages = function (ids, maxCount) {
     var pageIds = ids.splice(0, maxCount)
     if (pageIds.length) {
       where = objId + ' in (' + pageIds.join(',') + ')'
-      pageUrl = url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+      pageUrl = this.url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
@@ -338,7 +369,7 @@ FeatureService.prototype._abortPaging = function (msg, uri, error, code, done) {
 FeatureService.prototype._requestFeatures = function (task, cb) {
   var uri = encodeURI(decodeURI(task.req))
   try {
-    var url_parts = url.parse(uri)
+    var url_parts = urlUtils.parse(uri)
 
     var opts = {
       method: 'GET',
@@ -352,7 +383,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     }
 
     // make an http or https request based on the protocol
-    var req = ((url_parts.protocol === 'https:') ? protocols.https : protocols.http).request(opts, function (response) {
+    var req = ((url_parts.protocol === 'https:') ? this.protocols.https : this.protocols.http).request(opts, function (response) {
       var data = []
       response.on('data', function (chunk) {
         data.push(chunk)
