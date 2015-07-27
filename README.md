@@ -21,6 +21,25 @@ npm install featureservice
 
 ## Methods
 
+### layerIds(callback)
+Get all the ids in a feature service layer
+
+### layerInfo(callback) 
+Get the json metadata for a service layer
+
+### statistics(field, stats, callback)
+Get statistics for a field and an array of stats. 
+
+```javascript
+service.statistics('id', ['min', 'max'], function (err, stats) {
+  console.log(stats.features)
+})
+
+```
+
+### pages(callback)
+Returns an array of page urls that would get every feature in the service
+
 ## Todo
 
 * Expose a stream of feature instead of page chuncks
