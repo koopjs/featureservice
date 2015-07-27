@@ -47,7 +47,7 @@ A browser ready build of this module is in `dist/featureservice.min.js` and is b
 Example
 ```html
 <html>
-  <script src="dist/featureservice.js"></script>
+  <script src="dist/featureservice.min.js"></script>
   <script>
     var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
     service.statistics('id', ['max'], function (err, stats) { 
