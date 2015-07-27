@@ -44,8 +44,7 @@ Returns an array of page urls that would get every feature in the service
 
 A browser ready build of this module is in `dist/featureservice.min.js` and is built via the command `npm run build`
 
-Example usages
-
+Example
 ```html
 <html>
   <script src="dist/featureservice.js"></script>
