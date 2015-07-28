@@ -1,7 +1,6 @@
 // A module designed to talk to feature services and get every feature
 // this code will expose methods for getting the URL to each page
 
-// var request = require('browser-request')
 var queue = require('async').queue
 var http = require('http')
 var https = require('https')
@@ -151,10 +150,12 @@ FeatureService.prototype.layerIds = function (callback) {
  */
 FeatureService.prototype.pages = function (callback) {
 
-  this.featureCount(function (err, count) {
+  this.featureCount(function (err, json) {
     if (err) {
       return callback(err)
     }
+
+    var count = json.count
 
     if (count === 0) {
       return callback('Service returned a count of zero')

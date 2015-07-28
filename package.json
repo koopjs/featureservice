@@ -35,6 +35,6 @@
   },
   "scripts": {
     "test": "standard index.js && tape test/*.js | tap-spec",
-    "build": "browserify -d index.js -s FeatureService -p [minifyify --map featureservice.map.json --output featureservice.map.json] > dist/featureservice.min.js"
+    "build": "browserify -d index.js -s FeatureService -p [minifyify --map featureservice.map.json --output dist/featureservice.map.json] > dist/featureservice.min.js"
   }
 }

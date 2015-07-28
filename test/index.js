@@ -38,6 +38,16 @@ test('creates an out statistics url', function (t) {
   t.end()
 })
 
+test('builds pages for the service', function (t) {
+  var url = 'http://maps.indiana.edu/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer'
+  var indiana = new FeatureService(url, {})
+  indiana.pages(function (err, pages) {
+    t.equal(err, null)
+    t.equal(pages.length, 156)
+    t.end()
+  })
+})
+
 test('stub setup', function (t) {
   sinon.stub(service, 'request', function (url, callback) {
     callback(null, {body: '{}'})
@@ -75,4 +85,3 @@ test('teardown', function (t) {
   service.request.restore()
   t.end()
 })
-
