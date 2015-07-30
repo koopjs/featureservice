@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.0.4] - 2015-07-29
+### Fixed
+* request method was calling the callback twice when it wrapped a callback in a try/catch
+* passing min and max to statsUrl for creating stats in pages method 
+
 ## [0.0.3] - 2015-07-28
 ### Fixed 
 * A change made in v0.0.2 broke pagination. Its now fixed and a test for pages was added.
@@ -19,6 +24,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[0.0.4]: https://github.com/chelm/featureservice/ompare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/chelm/featureservice/ompare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/chelm/featureservice/ompare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/chelm/featureservice/releases/tag/v0.0.1

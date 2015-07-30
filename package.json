@@ -1,7 +1,7 @@
 {
   "name": "featureservice",
   "description": "a node module meant to extract every feature from an Esri geo-service thing",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Chris Helm",
   "bugs": {
     "url": "https://github.com/chelm/featureservice/issues"
