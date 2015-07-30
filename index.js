@@ -71,12 +71,15 @@ FeatureService.prototype.request = function (url, callback) {
     })
 
     response.on('end', function () {
+      var err
+      var json
       var buffer = Buffer.concat(data)
       try {
-        callback(null, JSON.parse(buffer.toString()))
-      } catch (e) {
-        callback(e)
+        json = JSON.parse(buffer.toString())
+      } catch (error) {
+        err = error
       }
+      callback(err, json)
     })
 
   })
@@ -180,13 +183,12 @@ FeatureService.prototype.pages = function (callback) {
       // build where clause based pages
       if (serviceInfo.supportsStatistics) {
 
-        this.request(this._statsUrl(serviceInfo.objectIdField), function (err, res) {
+        this.statistics(serviceInfo.objectIdField, ['min', 'max'], function (err, stats) {
           if (err) {
             return callback(err)
           }
 
           try {
-            var stats = JSON.parse(res.body)
             if (stats.error) {
               try {
                 var idUrl = this.url + '/' + (this.layer || 0) + '/query?where=1=1&returnIdsOnly=true&f=json'
