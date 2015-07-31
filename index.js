@@ -1,6 +1,3 @@
-// A module designed to talk to feature services and get every feature
-// this code will expose methods for getting the URL to each page
-
 var queue = require('async').queue
 var http = require('http')
 var https = require('https')
@@ -8,13 +5,20 @@ var zlib = require('zlib')
 var urlUtils = require('url')
 
 /**
- * A feature service object needs a url and some optional params to make requests
- * this module exposes a pageQueue that can take an array of page url
- * the pageQueue will report back each page of features as they return
- * @module FeatureService
+ * Feature Service constructor. Requires a URL.
+ * Exposes a pageQueue that can take an array of page URLs.
+ * The pageQueue will report back each page of features as they return.
  *
+ * @class
+ * @param {string} url - address of feature service
+ * @param {object} options - layer (default: 0)
  */
 var FeatureService = function (url, options) {
+  // catch omission of `new` keyword
+  if (!(this instanceof FeatureService)) {
+    return new FeatureService(url, options)
+  }
+
   // check the last char on the url
   // protects us from urls registered with layers already in the url
   var layer = url.split('/').pop()
@@ -37,8 +41,6 @@ var FeatureService = function (url, options) {
     http: http,
     https: https
   }
-
-  return this
 }
 
 /**
