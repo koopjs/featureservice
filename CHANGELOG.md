@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Added
+* Requests time out after 5 minutes of inactivity by default
+
+### Changed
+* TCP sockets are kept alive
+
 ## [0.0.4] - 2015-07-29
 ### Fixed
 * request method was calling the callback twice when it wrapped a callback in a try/catch

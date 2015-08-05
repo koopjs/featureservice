@@ -30,6 +30,7 @@ var FeatureService = function (url, options) {
   this.url = url
   this.options = options
   this.layer = options.layer || 0
+  this.timeOut = 5 * 60 * 1000
 
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
@@ -50,10 +51,12 @@ var FeatureService = function (url, options) {
  */
 FeatureService.prototype.request = function (url, callback) {
   var uri = urlUtils.parse(encodeURI(decodeURI(url)))
+  var self = this
 
   var opts = {
     method: 'GET',
     port: (uri.protocol === 'https:') ? 443 : uri.port || 80,
+    keepAlive: true,
     hostname: uri.hostname,
     path: uri.path,
     headers: {
@@ -84,6 +87,11 @@ FeatureService.prototype.request = function (url, callback) {
       callback(err, json)
     })
 
+  })
+
+  req.setTimeout(self.timeOut, function () {
+    req.end()
+    callback(new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.'))
   })
 
   req.on('error', function (error) {

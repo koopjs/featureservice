@@ -1,6 +1,7 @@
 var sinon = require('sinon')
 var test = require('tape')
 var FeatureService = require('../')
+var nock = require('nock')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
 
@@ -79,6 +80,20 @@ test('get all feature count for a layer on the service', function (t) {
     t.equal(service.request.calledWith(expected), true)
     t.end()
   })
+})
+
+test('time out when there is no response', function (t) {
+  var error
+  service.timeOut = 5
+  nock('http://www.timeout.com').get('/').socketDelay(100)
+
+  service.request('http://www.timeout.com', function (err, data) {
+    error = err
+  })
+  setTimeout(function () {
+    t.equal(typeof error, 'object')
+    t.end()
+  }, 25)
 })
 
 test('teardown', function (t) {
