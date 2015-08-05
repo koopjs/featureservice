@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [0.1.0] - 2015-08-05
 ### Added
 * Requests time out after 5 minutes of inactivity by default
 
@@ -31,6 +31,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[0.1.0]: https://github.com/chelm/featureservice/ompare/v0.0.4...v0.1.0
 [0.0.4]: https://github.com/chelm/featureservice/ompare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/chelm/featureservice/ompare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/chelm/featureservice/ompare/v0.0.1...v0.0.2
