@@ -30,7 +30,7 @@ var FeatureService = function (url, options) {
   this.url = url
   this.options = options
   this.layer = options.layer || 0
-  this.timeOut = 5 * 60 * 1000
+  this.timeOut = 1.5 * 60 * 1000
 
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
@@ -381,6 +381,7 @@ FeatureService.prototype._abortPaging = function (msg, uri, error, code, done) {
  */
 FeatureService.prototype._requestFeatures = function (task, cb) {
   var uri = encodeURI(decodeURI(task.req))
+  var self = this
   try {
     var url_parts = urlUtils.parse(uri)
 
@@ -388,6 +389,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       method: 'GET',
       port: (url_parts.protocol === 'https:') ? 443 : url_parts.port || 80,
       hostname: url_parts.hostname,
+      keepAlive: true,
       path: url_parts.path,
       headers: {
         'User-Agent': 'featureservices-node',
@@ -439,6 +441,13 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
     })
 
+    req.setTimeout(self.timeOut, function () {
+      // kill it immediately if a timeout occurs
+      req.end()
+      var err = JSON.stringify({message: 'The request timed out after ' + self.timeOut / 1000 + ' seconds.'})
+      catchErrors(task, err, uri, cb)
+    })
+
     // we need this error catch to handle ECONNRESET
     req.on('error', function (err) {
       catchErrors(task, err, uri, cb)
@@ -450,7 +459,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
   }
 
   // Catch any errors and either retry the request or fail it
-  var catchErrors = function (task, e, url) {
+  var catchErrors = function (task, e, url, cb) {
     if (task.retry && task.retry === 3) {
       try {
         var jsonErr = JSON.parse(e)
@@ -460,7 +469,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       }
       return
     }
-
+    // immediately kill
     if (!task.retry) {
       task.retry = 1
     } else {
@@ -470,7 +479,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     console.log('Re-requesting page', task.req, task.retry)
 
     setTimeout(function () {
-      this.requestFeatures(task, cb)
+      this._requestFeatures(task, cb)
     }.bind(this), task.retry * 1000)
 
   }.bind(this)
