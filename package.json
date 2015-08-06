@@ -1,10 +1,11 @@
 {
   "name": "featureservice",
   "description": "a node module meant to extract every feature from an Esri geo-service thing",
-  "version": "0.0.4",
+  "version": "0.2.0",
   "author": "Chris Helm",
+  "contributors": "Daniel Fenton",
   "bugs": {
-    "url": "https://github.com/chelm/featureservice/issues"
+    "url": "https://github.com/dmfenton/featureservice/issues"
   },
   "dependencies": {
     "async": "^1.4.0",
@@ -15,13 +16,14 @@
     "http-browserify": "^1.7.0",
     "https-browserify": "0.0.0",
     "minifyify": "^7.0.3",
+    "nock": "^2.10.0",
     "sinon": "^1.15.4",
-    "standard": "^4.5.4",
+    "standard": "^5.0.0",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.1",
     "zlib-browserify": "0.0.3"
   },
-  "homepage": "https://github.com/chelm/featureservice",
+  "homepage": "https://github.com/dmfenton/featureservice",
   "keywords": [
     "esri",
     "featureservice",
@@ -31,7 +33,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chelm/featureservice.git"
+    "url": "https://github.com/dmfenton/featureservice.git"
   },
   "scripts": {
     "test": "standard index.js && tape test/*.js | tap-spec",
