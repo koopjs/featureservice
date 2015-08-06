@@ -1,6 +1,6 @@
 {
   "name": "featureservice",
-  "description": "a node module meant to extract every feature from an Esri geo-service thing",
+  "description": "Get all features from an Esri Feature Service",
   "version": "0.2.0",
   "author": "Chris Helm",
   "bugs": {
