@@ -3,10 +3,10 @@
   "description": "a node module meant to extract every feature from an Esri geo-service thing",
   "version": "0.2.0",
   "author": "Chris Helm",
-  "contributors": "Daniel Fenton",
   "bugs": {
-    "url": "https://github.com/dmfenton/featureservice/issues"
+    "url": "https://github.com/koopjs/featureservice/issues"
   },
+  "contributors": "Daniel Fenton",
   "dependencies": {
     "async": "^1.4.0",
     "request": "^2.60.0"
@@ -23,7 +23,7 @@
     "tape": "^4.0.1",
     "zlib-browserify": "0.0.3"
   },
-  "homepage": "https://github.com/dmfenton/featureservice",
+  "homepage": "https://github.com/koopjs/featureservice",
   "keywords": [
     "esri",
     "featureservice",
@@ -33,10 +33,10 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dmfenton/featureservice.git"
+    "url": "https://github.com/koopjs/featureservice.git"
   },
   "scripts": {
-    "test": "standard index.js && tape test/*.js | tap-spec",
-    "build": "browserify -d index.js -s FeatureService -p [minifyify --map featureservice.map.json --output dist/featureservice.map.json] > dist/featureservice.min.js"
+    "build": "browserify -d index.js -s FeatureService -p [minifyify --map featureservice.map.json --output dist/featureservice.map.json] > dist/featureservice.min.js",
+    "test": "standard index.js && tape test/*.js | tap-spec"
   }
 }
