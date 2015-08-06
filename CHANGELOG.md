@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 * Moved to koopjs github organization
 
+### Fixed
+* detach http/https modules from FeatureService instances
+
 ## [0.2.0] - 2015-08-06
 ### Added
 * Feature requests time out

@@ -36,12 +36,6 @@ var FeatureService = function (url, options) {
   this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
   }.bind(this), (this.url.split('//')[1].match(/^service/)) ? 16 : 4)
-
-  // easy reference to a protocol type
-  this.protocols = {
-    http: http,
-    https: https
-  }
 }
 
 /**
@@ -65,8 +59,9 @@ FeatureService.prototype.request = function (url, callback) {
   }
 
   // make an http or https request based on the protocol
-  var req = ((uri.protocol === 'https:') ? this.protocols.https : this.protocols.http).request(opts, function (response) {
+  var req = ((uri.protocol === 'https:') ? https : http).request(opts, function (response) {
     var data = []
+
     response.on('data', function (chunk) {
       data.push(chunk)
     })
@@ -398,7 +393,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     }
 
     // make an http or https request based on the protocol
-    var req = ((url_parts.protocol === 'https:') ? this.protocols.https : this.protocols.http).request(opts, function (response) {
+    var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
       var data = []
       response.on('data', function (chunk) {
         data.push(chunk)
