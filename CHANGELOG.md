@@ -2,14 +2,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Moved to koopjs github organization
+
 ## [0.2.0] - 2015-08-06
 ### Added
 * Feature requests time out
 
-## Changed
+### Changed
 * Timeout set at 90 seconds
 
-## Fixed
+### Fixed
 * Reference to non-existent functions
 
 ## [0.1.0] - 2015-08-05
@@ -22,10 +26,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.0.4] - 2015-07-29
 ### Fixed
 * request method was calling the callback twice when it wrapped a callback in a try/catch
-* passing min and max to statsUrl for creating stats in pages method 
+* passing min and max to statsUrl for creating stats in pages method
 
 ## [0.0.3] - 2015-07-28
-### Fixed 
+### Fixed
 * A change made in v0.0.2 broke pagination. Its now fixed and a test for pages was added.
 
 ## [0.0.2] - 2015-07-27
@@ -33,7 +37,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * A method for making statistics calls to a service
 * Support for using the module in the browser
 
-### Changed 
+### Changed
 * http requests are all routed through the core http/https libs now
 
 ## [0.0.1] - 2015-07-22
