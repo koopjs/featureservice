@@ -2,8 +2,18 @@ var sinon = require('sinon')
 var test = require('tape')
 var FeatureService = require('../')
 var nock = require('nock')
+var fs = require('fs')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
+
+var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
+
+test('get the objectId', function (t) {
+  var oid = service.getObjectIdField(layerInfo)
+  t.equal(oid, 'ESRI_OID')
+
+  t.end()
+})
 
 test('build offset pages', function (t) {
   var pages
