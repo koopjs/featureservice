@@ -173,7 +173,6 @@ FeatureService.prototype.layerIds = function (callback) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.pages = function (callback) {
-
   this.featureCount(function (err, json) {
     if (err) {
       return callback(err)
@@ -205,7 +204,6 @@ FeatureService.prototype.pages = function (callback) {
 
       // build where clause based pages
       if (serviceInfo.supportsStatistics) {
-
         this.statistics(serviceInfo.objectIdField, ['min', 'max'], function (err, stats) {
           if (err) {
             return callback(err)
@@ -236,7 +234,6 @@ FeatureService.prototype.pages = function (callback) {
               } catch (e) {
                 return callback(e)
               }
-
             } else {
               var names, minId, maxId
               var attrs = stats.features[0].attributes
