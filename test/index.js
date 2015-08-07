@@ -9,10 +9,7 @@ var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-8
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
 
 test('get the objectId', function (t) {
-  console.log(layerInfo.fields[0])
   var oid = service.getObjectIdField(layerInfo)
-  console.log(service.getObjectIdField(layerInfo))
-  console.log(oid)
   t.equal(oid, 'ESRI_OID')
 
   t.end()
