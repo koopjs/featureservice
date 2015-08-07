@@ -31,11 +31,12 @@ var FeatureService = function (url, options) {
   this.options = options
   this.layer = options.layer || 0
   this.timeOut = 1.5 * 60 * 1000
+  var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
 
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
-  }.bind(this), (this.url.split('//')[1].match(/^service/)) ? 16 : 4)
+  }.bind(this), concurrency)
 }
 
 /**
@@ -143,6 +144,21 @@ FeatureService.prototype.layerInfo = function (callback) {
 }
 
 /**
+ * Gets the objectID field from the service info
+ @param {object} info the feature layer metadata
+ @returns {string} service's object id field
+*/
+FeatureService.prototype.getObjectIdField = function (info) {
+  var oid
+  info.fields.forEach(function (field) {
+    if (field.type === 'esriFieldTypeOID') {
+      oid = field.name
+    }
+  })
+  return oid
+}
+
+/**
  * Gets the feature service object ids for pagination
  * @param {object} callback - called when the service info comes back
  */
@@ -174,6 +190,8 @@ FeatureService.prototype.pages = function (callback) {
       if (err || !serviceInfo) {
         return callback(err || 'Unable to get layer metadata')
       }
+
+      this.options.objectIdField = this.getObjectIdField(serviceInfo)
 
       // figure out what kind of pages we can build
       var maxCount = Math.min(parseInt(serviceInfo.maxRecordCount, 0), 1000) || 1000
@@ -333,7 +351,7 @@ FeatureService.prototype._objectIdPages = function (min, max, maxRecordCount) {
   var pageMax
   var pageMin
   var where
-  var objId = this.options.objectIdField || 'objectId'
+  var objId = this.options.objectIdField
 
   var url = this.url
   var pages = Math.max((max === maxRecordCount) ? max : Math.ceil((max - min) / maxRecordCount), 1)
