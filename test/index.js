@@ -7,6 +7,9 @@ var fs = require('fs')
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
 
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
+var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
+var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
+var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
 
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
@@ -17,11 +20,10 @@ test('get the objectId', function (t) {
 
 test('build offset pages', function (t) {
   var pages
-  var min = 0
-  var max = 2000
-  pages = service._objectIdPages(min, max, max / 2)
+  var stats = {min: 0, max: 2000}
+  pages = service._rangePages(stats, stats.max / 2)
   t.equal(pages.length, 2)
-  pages = service._objectIdPages(min, max, max / 4)
+  pages = service._rangePages(stats, stats.max / 4)
   t.equal(pages.length, 4)
   t.end()
 })
@@ -49,45 +51,40 @@ test('creates an out statistics url', function (t) {
   t.end()
 })
 
-test('builds pages for the service', function (t) {
-  var url = 'http://maps.indiana.edu/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer'
-  var indiana = new FeatureService(url, {})
-  indiana.pages(function (err, pages) {
-    t.equal(err, null)
-    t.equal(pages.length, 156)
-    t.end()
-  })
-})
-
-test('stub setup', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
-    callback(null, {body: '{}'})
-  })
-  t.end()
-})
-
 test('get the metadata for a layer on the service', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, layerFixture)
+  })
   service.layerInfo(function (err, metadata) {
     t.equal(err, null)
     t.equal(service.request.calledWith('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0?f=json'), true)
+    service.request.restore()
     t.end()
   })
 })
 
 test('get all the object ids for a layer on the service', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, idFixture)
+  })
   service.layerIds(function (err, metadata) {
     t.equal(err, null)
     var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?where=1=1&returnIdsOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
+    service.request.restore()
     t.end()
   })
 })
 
 test('get all feature count for a layer on the service', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, countFixture)
+  })
   service.featureCount(function (err, metadata) {
     t.equal(err, null)
-    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?where=1=1&returnIdsOnly=true&returnCountOnly=true&f=json'
+    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?where=1=1&returnCountOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
+    service.request.restore()
     t.end()
   })
 })
@@ -106,7 +103,75 @@ test('time out when there is no response', function (t) {
   }, 25)
 })
 
-test('teardown', function (t) {
-  service.request.restore()
-  t.end()
+// paging integration tests
+test('building pages for a service that supports pagination', function (t) {
+  var countPaging = JSON.parse(fs.readFileSync('./test/fixtures/countPaging.json'))
+  var layerPaging = JSON.parse(fs.readFileSync('./test/fixtures/layerPaging.json'))
+  var fixture = nock('http://maps.indiana.edu')
+
+  fixture.get('/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
+  .reply(200, countPaging)
+
+  fixture.get('/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0?f=json')
+  .reply(200, layerPaging)
+
+  var service = new FeatureService('http://maps.indiana.edu/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
+  service.pages(function (err, pages) {
+    t.equal(err, null)
+    t.equal(pages.length, 156)
+    t.end()
+  })
 })
+
+test('building pages from a layer that does not support pagination', function (t) {
+  var layerNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/layerNoPaging.json'))
+  var countNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/countNoPaging.json'))
+  var statsNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/statsNoPaging.json'))
+  var fixture = nock('http://maps2.dcgis.dc.gov')
+
+  fixture.get('/dcgis/rest/services/DCGIS_DATA/Transportation_WebMercator/MapServer/50/query?where=1=1&returnCountOnly=true&f=json')
+  .reply(200, countNoPaging)
+
+  fixture.get('/dcgis/rest/services/DCGIS_DATA/Transportation_WebMercator/MapServer/50?f=json')
+  .reply(200, layerNoPaging)
+
+  fixture.get('/dcgis/rest/services/DCGIS_DATA/Transportation_WebMercator/MapServer/50/query?f=json&outFields=&outStatistics=%5B%7B%22statisticType%22:%22min%22,%22onStatisticField%22:%22OBJECTID_1%22,%22outStatisticFieldName%22:%22min_OBJECTID_1%22%7D,%7B%22statisticType%22:%22max%22,%22onStatisticField%22:%22OBJECTID_1%22,%22outStatisticFieldName%22:%22max_OBJECTID_1%22%7D%5D')
+  .reply(200, statsNoPaging)
+
+  var service = new FeatureService('http://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_WebMercator/MapServer/50')
+  service.pages(function (err, pages) {
+    t.equal(err, null)
+    t.equal(pages.length, 1)
+    t.end()
+  })
+})
+
+test('building pages from a layer where statistics fail', function (t) {
+  var layerStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/layerStatsFail.json'))
+  var countStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/countStatsFail.json'))
+  var idsStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/idsStatsFail.json'))
+  var statsFail = JSON.parse(fs.readFileSync('./test/fixtures/statsFail.json'))
+  var fixture = nock('http://maps2.dcgis.dc.gov')
+
+  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?where=1=1&returnIdsOnly=true&f=json')
+  .reply(200, idsStatsFail)
+
+  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?where=1=1&returnCountOnly=true&f=json')
+  .reply(200, countStatsFail)
+
+  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8?f=json')
+  .reply(200, layerStatsFail)
+
+  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?f=json&outFields=&outStatistics=%5B%7B"statisticType":"min","onStatisticField":"ESRI_OID","outStatisticFieldName":"min_ESRI_OID"%7D,%7B"statisticType":"max","onStatisticField":"ESRI_OID","outStatisticFieldName":"max_ESRI_OID"%7D%5D%27')
+  .reply(200, statsFail)
+
+  var service = new FeatureService('http://maps2.dcgis.dc.gov/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8')
+
+  service.pages(function (err, pages) {
+    t.equal(err, undefined)
+    t.equal(pages.length, 4)
+    t.end()
+  })
+
+})
+
