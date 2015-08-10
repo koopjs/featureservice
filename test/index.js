@@ -162,7 +162,7 @@ test('building pages from a layer where statistics fail', function (t) {
   fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8?f=json')
   .reply(200, layerStatsFail)
 
-  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?f=json&outFields=&outStatistics=%5B%7B"statisticType":"min","onStatisticField":"ESRI_OID","outStatisticFieldName":"min_ESRI_OID"%7D,%7B"statisticType":"max","onStatisticField":"ESRI_OID","outStatisticFieldName":"max_ESRI_OID"%7D%5D%27')
+  fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?f=json&outFields=&outStatistics=%5B%7B%22statisticType%22:%22min%22,%22onStatisticField%22:%22ESRI_OID%22,%22outStatisticFieldName%22:%22min_ESRI_OID%22%7D,%7B%22statisticType%22:%22max%22,%22onStatisticField%22:%22ESRI_OID%22,%22outStatisticFieldName%22:%22max_ESRI_OID%22%7D%5D')
   .reply(200, statsFail)
 
   var service = new FeatureService('http://maps2.dcgis.dc.gov/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8')
