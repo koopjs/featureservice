@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2015-08-10
+### Fixed
+* Build dist for changes
+
 ## [1.1.0] - 2015-08-10
 ### Added
 * New fixtures and integration tests for paging
@@ -66,6 +70,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.1.0]: https://github.com/chelm/featureservice/ompare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/chelm/featureservice/ompare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chelm/featureservice/ompare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/chelm/featureservice/ompare/v0.1.0...v0.2.0
