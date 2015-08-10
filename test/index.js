@@ -137,7 +137,7 @@ test('decoding something that is not compressed', function (t) {
 })
 
 test('decoding an empty response', function (t) {
-  var data
+  var data = []
   var res = {headers: {'content-encoding': 'gzip'}}
   var service = new FeatureService('http://service.com/mapserver/2')
 

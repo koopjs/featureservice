@@ -441,7 +441,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
   var json
   var encoding = res.headers['content-encoding']
 
-  if (!data) return callback(new Error('Empty reply from the server'))
+  if (!data.lenth) return callback(new Error('Empty reply from the server'))
 
   try {
     var buffer = Buffer.concat(data)
