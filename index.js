@@ -166,7 +166,7 @@ FeatureService.prototype.getObjectIdField = function (info) {
  */
 FeatureService.prototype.layerIds = function (callback) {
   this.request(this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json', function (err, json) {
-    if (!json.objectIds) return callback(new Error('Request for object ids failed'))
+    if (err || !json.objectIds) return callback(new Error('Request for object ids failed' + err))
     // TODO: is this really necessary
     json.objectIds.sort(function (a, b) { return a - b })
     callback(err, json.objectIds)
@@ -179,18 +179,23 @@ FeatureService.prototype.layerIds = function (callback) {
  */
 FeatureService.prototype.metadata = function (callback) {
   // TODO memoize this
-  // TODO make these calls simultaneous
   this.layerInfo(function (err, layer) {
     if (err) return callback(new Error(err || 'Unable to get layer metadata'))
+    var oid = this.getObjectIdField(layer)
+    var size = layer.maxRecordCount
+    // TODO flatten this
+    var metadata = {layer: layer, oid: oid, size: size}
+
+    // 10.0 servers don't support count requests
+    // they also do not show current version on the layer
+    if (!layer.currentVersion) return callback(null, metadata)
+
     this.featureCount(function (err, json) {
       if (err) return callback(err)
       if (json.count < 1) return callback(new Error('Service returned count of 0'))
-      var oid = this.getObjectIdField(layer)
-      var size = layer.maxRecordCount
-      // TODO flatten this
-      var metadata = {count: json.count, layer: layer, oid: oid, size: size}
+      metadata.count = json.count
       callback(null, metadata)
-    }.bind(this))
+    })
   }.bind(this))
 }
 

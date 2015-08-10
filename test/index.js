@@ -175,3 +175,22 @@ test('building pages from a layer where statistics fail', function (t) {
 
 })
 
+test('building pages for a version 10.0 server', function (t) {
+  var layer10 = JSON.parse(fs.readFileSync('./test/fixtures/layer10.0.json'))
+  var ids10 = JSON.parse(fs.readFileSync('./test/fixtures/ids10.0.json'))
+  var fixture = nock('http://sampleserver3.arcgisonline.com')
+
+  fixture.get('/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2?f=json').reply(200, layer10)
+
+  fixture.get('/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2/query?where=1=1&returnIdsOnly=true&f=json').reply(200, ids10)
+
+  var service = new FeatureService('http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2')
+
+  service.pages(function (err, pages) {
+    t.equal(err, undefined)
+    t.equal(pages.length, 1)
+    t.end()
+  })
+
+})
+
