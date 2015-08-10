@@ -3,6 +3,7 @@ var test = require('tape')
 var FeatureService = require('../')
 var nock = require('nock')
 var fs = require('fs')
+var zlib = require('zlib')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
 
@@ -104,44 +105,49 @@ test('time out when there is no response', function (t) {
 })
 
 test('decoding something that is gzipped', function (t) {
-  var gzip = [fs.readFileSync('./test/fixtures/gzip.json')]
+  var json = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
+  var gzipped = zlib.gzipSync(json)
+  var data = [gzipped]
   var res = {headers: {'content-encoding': 'gzip'}}
   var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, gzip, function (err, json) {
+  service._decode(res, data, function (err, json) {
     t.equal(json.features.length, 2000)
     t.end()
   })
 })
 
 test('decoding something that is deflated', function (t) {
-  var gzip = [fs.readFileSync('./test/fixtures/deflate.json')]
+  var json = JSON.stringify(JSON.parse((fs.readFileSync('./test/fixtures/uncompressed.json'))))
+  var deflated = zlib.deflateSync(json)
+  var data = [deflated]
   var res = {headers: {'content-encoding': 'deflate'}}
   var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, gzip, function (err, json) {
+  service._decode(res, data, function (err, json) {
     t.equal(json.features.length, 2000)
     t.end()
   })
 })
 
 test('decoding something that is not compressed', function (t) {
-  var gzip = [fs.readFileSync('./test/fixtures/uncompressed.json')]
+  var uncompressed = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
+  var data = [new Buffer(uncompressed)]
   var res = {headers: {}}
   var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, gzip, function (err, json) {
+  service._decode(res, data, function (err, json) {
     t.equal(json.features.length, 2000)
     t.end()
   })
 })
 
 test('decoding an empty response', function (t) {
-  var data = []
+  var empty = []
   var res = {headers: {'content-encoding': 'gzip'}}
   var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, data, function (err, json) {
+  service._decode(res, empty, function (err, json) {
     t.notEqual(typeof err, 'undefined')
     t.end()
   })

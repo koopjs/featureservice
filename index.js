@@ -408,7 +408,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
 
       response.on('end', function () {
-        self.decode(response, data, function (err, json) {
+        self._decode(response, data, function (err, json) {
           if (err) return self.catchErrors(task, err, uri, cb)
           cb(null, json)
         })
@@ -440,8 +440,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 FeatureService.prototype._decode = function (res, data, callback) {
   var json
   var encoding = res.headers['content-encoding']
-
-  if (!data.lenth) return callback(new Error('Empty reply from the server'))
+  if (!data.length) return callback(new Error('Empty reply from the server'))
 
   try {
     var buffer = Buffer.concat(data)
