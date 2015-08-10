@@ -3,6 +3,7 @@ var test = require('tape')
 var FeatureService = require('../')
 var nock = require('nock')
 var fs = require('fs')
+var zlib = require('zlib')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
 
@@ -101,6 +102,89 @@ test('time out when there is no response', function (t) {
     t.equal(typeof error, 'object')
     t.end()
   }, 25)
+})
+
+test('decoding something that is gzipped', function (t) {
+  var json = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
+  var gzipped = zlib.gzipSync(json)
+  var data = [gzipped]
+  var res = {headers: {'content-encoding': 'gzip'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, data, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding something that is deflated', function (t) {
+  var json = JSON.stringify(JSON.parse((fs.readFileSync('./test/fixtures/uncompressed.json'))))
+  var deflated = zlib.deflateSync(json)
+  var data = [deflated]
+  var res = {headers: {'content-encoding': 'deflate'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, data, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding something that is not compressed', function (t) {
+  var uncompressed = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
+  var data = [new Buffer(uncompressed)]
+  var res = {headers: {}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, data, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding an empty response', function (t) {
+  var empty = []
+  var res = {headers: {'content-encoding': 'gzip'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, empty, function (err, json) {
+    t.notEqual(typeof err, 'undefined')
+    t.end()
+  })
+})
+
+test('should callback with an error when decoding json with an error in the response', function (t) {
+  var data = {
+    error: {
+      code: 400,
+      message: 'Invalid or missing input parameters.',
+      details: []
+    }
+  }
+  var res = {headers: {}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, [new Buffer(JSON.stringify(data))], function (err, json) {
+    t.notEqual(typeof err, 'undefined')
+    t.end()
+  })
+})
+
+// feature request integration tests
+test('requesting a page of features', function (t) {
+  var page = fs.readFileSync('./test/fixtures/page.json')
+  var fixture = nock('http://servicesqa.arcgis.com')
+
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  .reply(200, page)
+
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+
+  service._requestFeatures(task, function (err, json) {
+    t.equal(json.features.length, 1000)
+    t.end()
+  })
 })
 
 // paging integration tests

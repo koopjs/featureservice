@@ -4,11 +4,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 ### Added
-* New fixtures and integration tests
+* New fixtures and integration tests for paging
 * Support for paging layers from server version 10.0
+* New fixtures and tests for decoding
 
 ### Changed
 * Refactored paging strategy
+* Moved feature request decoding into isolated function
+
+### Fixed
+* Catch errors that come on 200 responses
 
 ## [1.0.0] - 2015-08-07
 ### Added

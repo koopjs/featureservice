@@ -396,7 +396,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       }
     }
 
-    // make an http or https request based on the protocol
+     // make an http or https request based on the protocol
     var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
       var data = []
       response.on('data', function (chunk) {
@@ -404,39 +404,15 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
 
       response.on('error', function (err) {
-        catchErrors(task, err, uri, cb)
+        self._catchErrors(task, err, uri, cb)
       })
 
       response.on('end', function () {
         // TODO: move this into a function call decode
-        try {
-          var json
-          var buffer = Buffer.concat(data)
-          var encoding = response.headers['content-encoding']
-          // TODO all this shit is ugly -- make it less shitty (less try/catch)
-          if (encoding === 'gzip') {
-            zlib.gunzip(buffer, function (e, result) {
-              try {
-                json = JSON.parse(result.toString().replace(/NaN/g, 'null'))
-                cb(null, json)
-              } catch (e) {
-                catchErrors(task, e, uri, cb)
-              }
-            })
-          } else if (encoding === 'deflate') {
-            try {
-              json = JSON.parse(zlib.inflateSync(buffer).toString())
-              cb(null, json)
-            } catch (e) {
-              catchErrors(task, e, uri, cb)
-            }
-          } else {
-            json = JSON.parse(buffer.toString().replace(/NaN/g, 'null'))
-            cb(null, json)
-          }
-        } catch(e) {
-          catchErrors(task, e, uri, cb)
-        }
+        self._decode(response, data, function (err, json) {
+          if (err) return self._catchErrors(task, err, uri, cb)
+          cb(null, json)
+        })
       })
     })
 
@@ -444,44 +420,70 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       // kill it immediately if a timeout occurs
       req.end()
       var err = JSON.stringify({message: 'The request timed out after ' + self.timeOut / 1000 + ' seconds.'})
-      catchErrors(task, err, uri, cb)
+      self._catchErrors(task, err, uri, cb)
     })
 
     // we need this error catch to handle ECONNRESET
     req.on('error', function (err) {
-      catchErrors(task, err, uri, cb)
+      self._catchErrors(task, err, uri, cb)
     })
 
     req.end()
   } catch(e) {
-    catchErrors(task, e, uri, cb)
+    self._catchErrors(task, e, uri, cb)
+  }
+}
+
+/* Decodes a response for features
+ * @param {object} res - the response received from the GIS Server
+ * @param {array} data - an array of chunks received from the server
+ * @param {function} callback - calls back with either an error or the decoded feature json
+ */
+FeatureService.prototype._decode = function (res, data, callback) {
+  var json
+  var encoding = res.headers['content-encoding']
+  if (!data.length > 0) return callback(new Error('Empty reply from the server'))
+
+  try {
+    var buffer = Buffer.concat(data)
+    if (encoding === 'gzip') {
+      json = JSON.parse(zlib.gunzipSync(buffer).toString().replace(/NaN/g, 'null'))
+    } else if (encoding === 'deflate') {
+      json = JSON.parse(zlib.inflateSync(buffer).toString())
+    } else {
+      json = JSON.parse(buffer.toString().replace(/NaN/g, 'null'))
+    }
+  } catch (e) {
+    callback(e)
+  }
+  // ArcGIS Server responds 200 on errors so we have to inspect the payload
+  if (json.error) return callback(json)
+  // everything has worked so callback with the decoded JSON
+  callback(null, json)
+}
+
+/* Catches an errors during paging and handles retry logic
+ * @param {object} task - the currently executing job
+ * @param {object} e - the error in application logic or from a failed request to a server
+ * @param {string} url - the url of the last request for pages
+ * @param {function} cb - callback passed through to the abort paging function
+ */
+FeatureService.prototype._catchErrors = function (task, e, url, cb) {
+  if (!e.message) e.message = e.toString()
+  if (task.retry && task.retry === 3) return this._abortPaging('Failed to request a page of features', url, e.message, e.code, cb)
+
+  // initiate the count or increment it
+  if (!task.retry) {
+    task.retry = 1
+  } else {
+    task.retry++
   }
 
-  // Catch any errors and either retry the request or fail it
-  var catchErrors = function (task, e, url, cb) {
-    if (task.retry && task.retry === 3) {
-      try {
-        var jsonErr = JSON.parse(e)
-        this._abortPaging('Failed to request a page of features', url, jsonErr.message, jsonErr.code, cb)
-      } catch (parseErr) {
-        this._abortPaging('Failed to request a page of features', url, parseErr, null, cb)
-      }
-      return
-    }
-    // immediately kill
-    if (!task.retry) {
-      task.retry = 1
-    } else {
-      task.retry++
-    }
+  console.log('Re-requesting page', task.req, task.retry)
 
-    console.log('Re-requesting page', task.req, task.retry)
-
-    setTimeout(function () {
-      this._requestFeatures(task, cb)
-    }.bind(this), task.retry * 1000)
-
-  }.bind(this)
+  setTimeout(function () {
+    this._requestFeatures(task, cb)
+  }.bind(this), task.retry * 1000)
 }
 
 module.exports = FeatureService
