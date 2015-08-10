@@ -103,6 +103,67 @@ test('time out when there is no response', function (t) {
   }, 25)
 })
 
+test('decoding something that is gzipped', function (t) {
+  var gzip = [fs.readFileSync('./test/fixtures/gzip.json')]
+  var res = {headers: {'content-encoding': 'gzip'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, gzip, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding something that is deflated', function (t) {
+  var gzip = [fs.readFileSync('./test/fixtures/deflate.json')]
+  var res = {headers: {'content-encoding': 'deflate'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, gzip, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding something that is not compressed', function (t) {
+  var gzip = [fs.readFileSync('./test/fixtures/uncompressed.json')]
+  var res = {headers: {}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, gzip, function (err, json) {
+    t.equal(json.features.length, 2000)
+    t.end()
+  })
+})
+
+test('decoding an empty response', function (t) {
+  var data
+  var res = {headers: {'content-encoding': 'gzip'}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, data, function (err, json) {
+    t.notEqual(typeof err, 'undefined')
+    t.end()
+  })
+})
+
+test('should callback with an error when decoding json with an error in the response', function (t) {
+  var data = {
+    error: {
+      code: 400,
+      message: 'Invalid or missing input parameters.',
+      details: []
+    }
+  }
+  var res = {headers: {}}
+  var service = new FeatureService('http://service.com/mapserver/2')
+
+  service._decode(res, [new Buffer(JSON.stringify(data))], function (err, json) {
+    t.notEqual(typeof err, 'undefined')
+    t.end()
+  })
+})
+
 // paging integration tests
 test('building pages for a service that supports pagination', function (t) {
   var countPaging = JSON.parse(fs.readFileSync('./test/fixtures/countPaging.json'))
