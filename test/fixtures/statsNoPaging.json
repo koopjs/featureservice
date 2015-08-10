@@ -1,0 +1,1 @@
+{"displayFieldName":"","fieldAliases":{"min_OBJECTID_1":"min_OBJECTID_1","max_OBJECTID_1":"max_OBJECTID_1"},"fields":[{"name":"min_OBJECTID_1","type":"esriFieldTypeDouble","alias":"min_OBJECTID_1"},{"name":"max_OBJECTID_1","type":"esriFieldTypeDouble","alias":"max_OBJECTID_1"}],"features":[{"attributes":{"min_OBJECTID_1":1,"max_OBJECTID_1":88}}]}

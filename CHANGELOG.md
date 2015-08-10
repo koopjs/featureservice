@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Added
+* New fixtures and integration tests
+* Support for paging layers from server version 10.0
+
+### Changed
+* Refactored paging strategy
+
 ## [1.0.0] - 2015-08-07
 ### Added
 * New function gets objectID from service info

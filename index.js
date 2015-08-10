@@ -21,15 +21,17 @@ var FeatureService = function (url, options) {
 
   // check the last char on the url
   // protects us from urls registered with layers already in the url
-  var layer = url.split('/').pop()
-  if (parseInt(layer, 0) >= 0) {
+  var end = url.split('/').pop()
+  var layer
+  if (parseInt(end, 10) >= 0) {
+    layer = end
     var len = ('' + layer).length
     url = url.substring(0, url.length - ((len || 2) + 1))
   }
 
   this.url = url
-  this.options = options
-  this.layer = options.layer || 0
+  this.options = options || {}
+  this.layer = layer || this.options.layer || 0
   this.timeOut = 1.5 * 60 * 1000
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
 
@@ -164,8 +166,37 @@ FeatureService.prototype.getObjectIdField = function (info) {
  */
 FeatureService.prototype.layerIds = function (callback) {
   this.request(this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json', function (err, json) {
+    if (err || !json.objectIds) return callback(new Error('Request for object ids failed' + err))
+    // TODO: is this really necessary
+    json.objectIds.sort(function (a, b) { return a - b })
     callback(err, json.objectIds)
   })
+}
+
+/**
+ * Gets and derives layer metadata from two sources
+ * @param {function} callback - called with an error or a metadata object
+ */
+FeatureService.prototype.metadata = function (callback) {
+  // TODO memoize this
+  this.layerInfo(function (err, layer) {
+    if (err) return callback(new Error(err || 'Unable to get layer metadata'))
+    var oid = this.getObjectIdField(layer)
+    var size = layer.maxRecordCount
+    // TODO flatten this
+    var metadata = {layer: layer, oid: oid, size: size}
+
+    // 10.0 servers don't support count requests
+    // they also do not show current version on the layer
+    if (!layer.currentVersion) return callback(null, metadata)
+
+    this.featureCount(function (err, json) {
+      if (err) return callback(err)
+      if (json.count < 1) return callback(new Error('Service returned count of 0'))
+      metadata.count = json.count
+      callback(null, metadata)
+    })
+  }.bind(this))
 }
 
 /**
@@ -173,94 +204,56 @@ FeatureService.prototype.layerIds = function (callback) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.pages = function (callback) {
-  this.featureCount(function (err, json) {
-    if (err) {
-      return callback(err)
-    }
+  this.metadata(function (err, meta) {
+    if (err) return callback(err)
+    var size = meta.size
+    var layer = meta.layer
+    this.options.objectIdField = meta.oid
+    size = Math.min(parseInt(size, 10), 1000) || 1000
+    var nPages = Math.ceil(meta.count / size)
 
-    var count = json.count
+    // if the service supports paging, we can use offset to build pages
+    var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
+    if (canPage) return callback(null, this._offsetPages(nPages, size))
 
-    if (count === 0) {
-      return callback('Service returned a count of zero')
-    }
-
-    // get layer info
-    this.layerInfo(function (err, serviceInfo) {
-      if (err || !serviceInfo) {
-        return callback(err || 'Unable to get layer metadata')
-      }
-
-      this.options.objectIdField = this.getObjectIdField(serviceInfo)
-
-      // figure out what kind of pages we can build
-      var maxCount = Math.min(parseInt(serviceInfo.maxRecordCount, 0), 1000) || 1000
-
-      // build legit offset based page requests
-      if (serviceInfo.advancedQueryCapabilities &&
-        serviceInfo.advancedQueryCapabilities.supportsPagination) {
-        var nPages = Math.ceil(count / maxCount)
-        return callback(null, this._offsetPages(nPages, maxCount))
-      }
-
-      // build where clause based pages
-      if (serviceInfo.supportsStatistics) {
-        this.statistics(serviceInfo.objectIdField, ['min', 'max'], function (err, stats) {
-          if (err) {
-            return callback(err)
-          }
-
-          try {
-            if (stats.error) {
-              try {
-                var idUrl = this.url + '/' + (this.layer || 0) + '/query?where=1=1&returnIdsOnly=true&f=json'
-                this.request(idUrl, function (err, idJson) {
-                  if (err) {
-                    return callback(err)
-                  }
-
-                  var minID, maxID
-                  if (idJson.error) {
-                    // DMF: if grabbing objectIDs fails fall back to guessing based on 0 and count
-                    minID = 0
-                    maxID = count
-                  } else {
-                    idJson.objectIds.sort(function (a, b) { return a - b })
-                    minID = idJson.objectIds[0]
-                    maxID = idJson.objectIds[idJson.objectIds.length - 1]
-                  }
-                  return callback(null, this._objectIdPages(minID, maxID, maxCount))
-                }.bind(this))
-
-              } catch (e) {
-                return callback(e)
-              }
-            } else {
-              var names, minId, maxId
-              var attrs = stats.features[0].attributes
-              if (stats && stats.fieldAliases) {
-                names = Object.keys(stats.fieldAliases)
-              }
-              minId = attrs.min_oid || attrs.MIN_OID || attrs[names[0]]
-              maxId = attrs.max_oid || attrs.MAX_OID || attrs[names[1]]
-
-              return callback(null, this._objectIdPages(minId, maxId, maxCount))
-            }
-          } catch (e) {
-            return callback(e)
-          }
+    // if the service supports statistics, we can request the maximum and minimum id to build pages
+    if (layer.supportsStatistics) {
+      this._getIdRangeFromStats(meta, function (err, stats) {
+      // if this worked then we can pagination using where clauses
+        if (!err) return callback(null, this._rangePages(stats, size))
+        // if it failed, try to request all the ids and split them into pages
+        this.layerIds(function (err, ids) {
+          // either this works or we give up
+          if (err) return callback(err)
+          return callback(null, this._idPages(ids, size))
         }.bind(this))
-      } else {
-        if (count < 1000000) {
-          this.layerIds(function (err, ids) {
-            callback(err, this._idPages(ids, 250))
-          }.bind(this))
-        } else {
-          // default to sequential objectID paging starting from zero
-          return callback(null, this._objectIdPages(0, count, maxCount))
-        }
-      }
-    }.bind(this))
+      }.bind(this))
+    } else {
+      // this is the last thing we can try
+      this.layerIds(function (err, ids) {
+        if (err) return callback(err)
+        callback(null, this._idPages(ids, size))
+      }.bind(this))
+    }
   }.bind(this))
+}
+
+/**
+ * Get the max and min object id
+ * @param {object} meta - layer metadata, holds information needed to request oid stats
+ * @param {function} callback - returns with an error or objectID stats
+ */
+FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
+
+  this.statistics(meta.oid, ['min', 'max'], function (reqErr, stats) {
+    if (reqErr || stats.err) return callback(new Error('statistics request failed'))
+    var attrs = stats.features[0].attributes
+    // dmf: what's up with this third strategy?
+    var names = stats && stats.fieldAliases ? Object.keys(stats.fieldAliases) : null
+    var min = attrs.min || attrs.MIN || attrs[names[0]]
+    var max = attrs.max || attrs.MAX || attrs[names[1]]
+    callback(null, {min: min, max: max})
+  })
 }
 
 /**
@@ -268,17 +261,13 @@ FeatureService.prototype.pages = function (callback) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.featureCount = function (callback) {
-  var countUrl = this.url + '/' + (this.options.layer || 0)
-  countUrl += '/query?where=1=1&returnIdsOnly=true&returnCountOnly=true&f=json'
+  var countUrl = this.url + '/' + (this.layer || 0)
+  countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
 
   this.request(countUrl, function (err, json) {
-    if (err) {
-      return callback(err)
-    }
+    if (err) return callback(err)
 
-    if (json.error) {
-      return callback(json.error.message + ': ' + countUrl, null)
-    }
+    if (json.error) return callback(json.error.message + ': ' + countUrl, null)
 
     callback(null, json)
   })
@@ -313,19 +302,19 @@ FeatureService.prototype._offsetPages = function (pages, max) {
  * @param {array} ids - an array of each object id in the service
  * @param {number} maxCount - the max record count for each page
  */
-FeatureService.prototype._idPages = function (ids, maxCount) {
+FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
-  var where
-  var pageUrl
-
-  var objId = this.options.objectIdField || 'objectId'
-  var pages = (ids.length / maxCount)
+  var oidField = this.options.objectIdField || 'objectId'
+  var pages = (ids.length / size)
 
   for (var i = 0; i < pages + 1; i++) {
-    var pageIds = ids.splice(0, maxCount)
+    var pageIds = ids.splice(0, size)
     if (pageIds.length) {
-      where = objId + ' in (' + pageIds.join(',') + ')'
-      pageUrl = this.url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+      var pageMin = pageIds[0]
+      pageMin = pageMin === 0 ? pageMin : pageMin - 1
+      var pageMax = pageIds.pop()
+      var where = [oidField, ' > ', pageMin, ' AND ', 'oidField', '<=', pageMax].join('')
+      var pageUrl = this.url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
@@ -342,7 +331,7 @@ FeatureService.prototype._idPages = function (ids, maxCount) {
  * @param {number} max - the max object id in the service
  * @param {number} maxCount - the max record count for each page
  */
-FeatureService.prototype._objectIdPages = function (min, max, maxRecordCount) {
+FeatureService.prototype._rangePages = function (stats, size) {
   var reqs = []
   var pageUrl
   var pageMax
@@ -351,17 +340,17 @@ FeatureService.prototype._objectIdPages = function (min, max, maxRecordCount) {
   var objId = this.options.objectIdField
 
   var url = this.url
-  var pages = Math.max((max === maxRecordCount) ? max : Math.ceil((max - min) / maxRecordCount), 1)
+  var pages = Math.max((stats.max === size) ? stats.max : Math.ceil((stats.max - stats.min) / size), 1)
 
   for (var i = 0; i < pages; i++) {
     // there is a bug in server where queries fail if the max value queried is higher than the actual max
     // so if this is the last page, then set the max to be the maxOID
     if (i === pages - 1) {
-      pageMax = max
+      pageMax = stats.max
     } else {
-      pageMax = min + (maxRecordCount * (i + 1)) - 1
+      pageMax = stats.min + (size * (i + 1)) - 1
     }
-    pageMin = min + (maxRecordCount * i)
+    pageMin = stats.min + (size * i)
     where = objId + '<=' + pageMax + '+AND+' + objId + '>=' + pageMin
     pageUrl = url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
@@ -419,9 +408,9 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
 
       response.on('end', function () {
+        // TODO: move this into a function call decode
         try {
           var json
-
           var buffer = Buffer.concat(data)
           var encoding = response.headers['content-encoding']
           // TODO all this shit is ugly -- make it less shitty (less try/catch)
