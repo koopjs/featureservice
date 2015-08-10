@@ -396,7 +396,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       }
     }
 
-    // make an http or https request based on the protocol
+     // make an http or https request based on the protocol
     var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
       var data = []
       response.on('data', function (chunk) {
@@ -404,31 +404,33 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
 
       response.on('error', function (err) {
-        self.catchErrors(task, err, uri, cb)
+        self._catchErrors(task, err, uri, cb)
       })
 
       response.on('end', function () {
+        // TODO: move this into a function call decode
         self._decode(response, data, function (err, json) {
-          if (err) return self.catchErrors(task, err, uri, cb)
+          if (err) return self._catchErrors(task, err, uri, cb)
           cb(null, json)
         })
       })
-
     })
 
     req.setTimeout(self.timeOut, function () {
       // kill it immediately if a timeout occurs
       req.end()
-      var err = {message: 'The request timed out after ' + self.timeOut / 1000 + ' seconds.'}
-      self.catchErrors(task, err, uri, cb)
+      var err = JSON.stringify({message: 'The request timed out after ' + self.timeOut / 1000 + ' seconds.'})
+      self._catchErrors(task, err, uri, cb)
     })
 
     // we need this error catch to handle ECONNRESET
     req.on('error', function (err) {
-      self.catchErrors(task, err, uri, cb)
+      self._catchErrors(task, err, uri, cb)
     })
-  } catch (e) {
-    self.catchErrors(task, e, uri, cb)
+
+    req.end()
+  } catch(e) {
+    self._catchErrors(task, e, uri, cb)
   }
 }
 
@@ -440,7 +442,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 FeatureService.prototype._decode = function (res, data, callback) {
   var json
   var encoding = res.headers['content-encoding']
-  if (!data.length) return callback(new Error('Empty reply from the server'))
+  if (!data.length > 0) return callback(new Error('Empty reply from the server'))
 
   try {
     var buffer = Buffer.concat(data)
@@ -466,7 +468,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
  * @param {string} url - the url of the last request for pages
  * @param {function} cb - callback passed through to the abort paging function
  */
-FeatureService.prototype.catchErrors = function (task, e, url, cb) {
+FeatureService.prototype._catchErrors = function (task, e, url, cb) {
   if (!e.message) e.message = e.toString()
   if (task.retry && task.retry === 3) return this._abortPaging('Failed to request a page of features', url, e.message, e.code, cb)
 
