@@ -168,7 +168,7 @@ test('building pages from a layer where statistics fail', function (t) {
   var service = new FeatureService('http://maps2.dcgis.dc.gov/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8')
 
   service.pages(function (err, pages) {
-    t.equal(err, undefined)
+    t.equal(err, null)
     t.equal(pages.length, 4)
     t.end()
   })
@@ -187,7 +187,7 @@ test('building pages for a version 10.0 server', function (t) {
   var service = new FeatureService('http://sampleserver3.arcgisonline.com/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2')
 
   service.pages(function (err, pages) {
-    t.equal(err, undefined)
+    t.equal(err, null)
     t.equal(pages.length, 1)
     t.end()
   })

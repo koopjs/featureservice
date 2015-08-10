@@ -224,13 +224,15 @@ FeatureService.prototype.pages = function (callback) {
         // if it failed, try to request all the ids and split them into pages
         this.layerIds(function (err, ids) {
           // either this works or we give up
-          return callback(err, this._idPages(ids, size))
+          if (err) return callback(err)
+          return callback(null, this._idPages(ids, size))
         }.bind(this))
       }.bind(this))
     } else {
       // this is the last thing we can try
       this.layerIds(function (err, ids) {
-        callback(err, this._idPages(ids, size))
+        if (err) return callback(err)
+        callback(null, this._idPages(ids, size))
       }.bind(this))
     }
   }.bind(this))
