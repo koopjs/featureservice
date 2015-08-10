@@ -166,8 +166,41 @@ test('should callback with an error when decoding json with an error in the resp
 
   service._decode(res, [new Buffer(JSON.stringify(data))], function (err, json) {
     t.notEqual(typeof err, 'undefined')
+    t.equal(err.code, 400)
+    t.equal(err.message, 'Invalid or missing input parameters.')
     t.end()
   })
+})
+
+test('catching errors with a json payload', function (t) {
+  var service = new FeatureService('http://service.com/mapserver/2')
+  var task = {retry: 3}
+  var error = {
+    code: 400,
+    message: 'Invalid or missing input parameters.',
+    details: []
+  }
+  var url = 'http://url.com'
+
+  sinon.stub(service, '_abortPaging', function (msg, url, eMsg, eCode, cb) {
+    var info = {
+      message: msg,
+      request: url,
+      response: eMsg,
+      code: eCode
+    }
+    cb(info)
+  })
+
+  service._catchErrors(task, error, url, function (info) {
+    t.equal(info.message, 'Failed to request a page of features')
+    t.equal(info.code, error.code)
+    t.equal(info.request, url)
+    t.equal(info.response, error.message)
+    service._abortPaging.restore()
+    t.end()
+  })
+
 })
 
 // feature request integration tests
