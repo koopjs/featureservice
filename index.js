@@ -246,7 +246,7 @@ FeatureService.prototype.pages = function (callback) {
 FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
 
   this.statistics(meta.oid, ['min', 'max'], function (reqErr, stats) {
-    if (reqErr || stats.err) return callback(new Error('statistics request failed'))
+    if (reqErr || stats.error) return callback(new Error('statistics request failed'))
     var attrs = stats.features[0].attributes
     // dmf: what's up with this third strategy?
     var names = stats && stats.fieldAliases ? Object.keys(stats.fieldAliases) : null
