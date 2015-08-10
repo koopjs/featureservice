@@ -457,7 +457,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
     callback(e)
   }
   // ArcGIS Server responds 200 on errors so we have to inspect the payload
-  if (json.error) return callback(json)
+  if (json.error) return callback(json.error)
   // everything has worked so callback with the decoded JSON
   callback(null, json)
 }

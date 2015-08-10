@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 * Catch errors that come on 200 responses
+* Errors are reported correctly up the chain
+* Retries for all errors
 
 ## [1.0.0] - 2015-08-07
 ### Added
