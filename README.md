@@ -50,11 +50,12 @@ service.statistics('id', ['min', 'max'], function (err, stats) {
 #### pages(callback)
 Returns an array of page urls that would get every feature in the service
 
-## Browser
+### Browser
 
-A browser ready build of this module is in `dist/featureservice.min.js` and is built via the command `npm run build`
+A browser ready build of this module is in `dist/featureservice.min.js`.
 
-Example
+#### Example
+
 ```html
 <html>
   <script src="dist/featureservice.min.js"></script>
