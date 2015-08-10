@@ -68,10 +68,6 @@ Example
 
 ```
 
-## Todo
-
-* Expose a stream of feature instead of page chuncks
-
 ## License
 
 [Apache 2.0](LICENSE)
