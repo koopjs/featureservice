@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Pages based on object ids are now formed correctly
+
 ## [1.1.1] - 2015-08-10
 ### Fixed
 * Build dist for changes

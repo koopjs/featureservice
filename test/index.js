@@ -5,7 +5,7 @@ var nock = require('nock')
 var fs = require('fs')
 var zlib = require('zlib')
 
-var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {})
+var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {objectIdField: 'OBJECTID'})
 
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
 var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
@@ -34,7 +34,8 @@ test('build id based pages', function (t) {
   var maxCount = 2
   var pages = service._idPages(ids, maxCount)
   t.equal(pages.length, 2)
-
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?outSR=4326&where=OBJECTID > 0 AND OBJECTID<=2&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?outSR=4326&where=OBJECTID > 2 AND OBJECTID<=4&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
   t.end()
 })
 

@@ -313,7 +313,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       var pageMin = pageIds[0]
       pageMin = pageMin === 0 ? pageMin : pageMin - 1
       var pageMax = pageIds.pop()
-      var where = [oidField, ' > ', pageMin, ' AND ', 'oidField', '<=', pageMax].join('')
+      var where = [oidField, ' > ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
       var pageUrl = this.url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
