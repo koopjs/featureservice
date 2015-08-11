@@ -183,18 +183,12 @@ test('catching errors with a json payload', function (t) {
   }
   var url = 'http://url.com'
 
-  sinon.stub(service, '_abortPaging', function (msg, url, eMsg, eCode, cb) {
-    var info = {
-      message: msg,
-      request: url,
-      response: eMsg,
-      code: eCode
-    }
-    cb(info)
+  sinon.stub(service, '_abortPaging', function (error, cb) {
+    cb(error)
   })
 
   service._catchErrors(task, error, url, function (info) {
-    t.equal(info.message, 'Failed to request a page of features')
+    t.equal(info.message, 'Request for a page of features failed')
     t.equal(info.code, error.code)
     t.equal(info.request, url)
     t.equal(info.response, error.message)
