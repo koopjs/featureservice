@@ -36,9 +36,6 @@ var FeatureService = function (url, options) {
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
 
   // an async queue for requesting pages of data
-  // this.pageQueue = queue(function (task, callback) {
-  //   this._requestFeatures(task, callback)
-  // }.bind(this), concurrency)
   this.pageQueue = queue(this._requestFeatures, concurrency)
 }
 
