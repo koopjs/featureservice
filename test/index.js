@@ -175,29 +175,20 @@ test('should callback with an error when decoding json with an error in the resp
 
 test('catching errors with a json payload', function (t) {
   var service = new FeatureService('http://service.com/mapserver/2')
-  var task = {retry: 3}
-  var error = {
-    code: 400,
-    message: 'Invalid or missing input parameters.',
-    details: []
-  }
-  var url = 'http://url.com'
+  var task = { retry: 3 }
+  var error = new Error('Invalid or missing input parameters.')
+  error.code = 400
+  error.url = 'http://url.com'
 
-  sinon.stub(service, '_abortPaging', function (msg, url, eMsg, eCode, cb) {
-    var info = {
-      message: msg,
-      request: url,
-      response: eMsg,
-      code: eCode
-    }
-    cb(info)
+  sinon.stub(service, '_abortPaging', function (error, cb) {
+    cb(error)
   })
 
-  service._catchErrors(task, error, url, function (info) {
-    t.equal(info.message, 'Failed to request a page of features')
+  service._catchErrors(task, error, error.url, function (info) {
+    t.equal(info.message, 'Request for a page of features failed')
     t.equal(info.code, error.code)
-    t.equal(info.request, url)
-    t.equal(info.response, error.message)
+    t.equal(info.url, error.url)
+    t.equal(info.body.message, error.message)
     service._abortPaging.restore()
     t.end()
   })

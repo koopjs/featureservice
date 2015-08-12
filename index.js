@@ -136,12 +136,15 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
 FeatureService.prototype.layerInfo = function (callback) {
   var url = this.url + '/' + this.layer + '?f=json'
   this.request(url, function (err, json) {
-    try {
-      json.url = url
-    } catch (e) {
-      err = 'failed to parse service info: ' + e
+    if (err || !json || (json && json.error)) {
+      var error = new Error('Request for layer information failed')
+      error.url = url
+      error.body = err || json
+
+      return callback(error)
     }
-    return callback(err, json)
+    json.url = url
+    callback(null, json)
   })
 }
 
@@ -165,11 +168,18 @@ FeatureService.prototype.getObjectIdField = function (info) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.layerIds = function (callback) {
-  this.request(this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json', function (err, json) {
-    if (err || !json.objectIds) return callback(new Error('Request for object ids failed' + err))
+  var url = this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json'
+  this.request(url, function (err, json) {
+    if (err || !json.objectIds) {
+      var error = new Error('Request for object IDs failed')
+      error.url = url
+      error.body = json
+
+      return callback(error)
+    }
     // TODO: is this really necessary
     json.objectIds.sort(function (a, b) { return a - b })
-    callback(err, json.objectIds)
+    callback(null, json.objectIds)
   })
 }
 
@@ -180,9 +190,14 @@ FeatureService.prototype.layerIds = function (callback) {
 FeatureService.prototype.metadata = function (callback) {
   // TODO memoize this
   this.layerInfo(function (err, layer) {
-    if (err) return callback(new Error(err || 'Unable to get layer metadata'))
+    if (err) {
+      err.message = 'Unable to get layer metadata: ' + err.message
+      return callback(err)
+    }
+
     var oid = this.getObjectIdField(layer)
     var size = layer.maxRecordCount
+
     // TODO flatten this
     var metadata = {layer: layer, oid: oid, size: size}
 
@@ -206,11 +221,12 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
-    var size = meta.size
+
+    var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
     var layer = meta.layer
-    this.options.objectIdField = meta.oid
-    size = Math.min(parseInt(size, 10), 1000) || 1000
     var nPages = Math.ceil(meta.count / size)
+
+    this.options.objectIdField = meta.oid
 
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
@@ -265,9 +281,14 @@ FeatureService.prototype.featureCount = function (callback) {
   countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
 
   this.request(countUrl, function (err, json) {
-    if (err) return callback(err)
+    // TODO what's in this error object and how can I use it?
+    if (err || json.error) {
+      var error = new Error('Request for feature count failed')
+      error.url = countUrl
+      error.body = json
 
-    if (json.error) return callback(json.error.message + ': ' + countUrl, null)
+      return callback(error)
+    }
 
     callback(null, json)
   })
@@ -361,19 +382,6 @@ FeatureService.prototype._rangePages = function (stats, size) {
 }
 
 /**
- * Aborts the request queue by emptying all queued up tasks
- */
-FeatureService.prototype._abortPaging = function (msg, uri, error, code, done) {
-  this.pageQueue.kill()
-  done(JSON.stringify({
-    message: msg,
-    request: uri,
-    response: error,
-    code: code || 500
-  }))
-}
-
-/**
  * Requests a page of features
  * @param {object} task - a task object with a "req" property
  * @param {function} callback
@@ -408,8 +416,8 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
 
       response.on('end', function () {
-        // TODO: move this into a function call decode
         self._decode(response, data, function (err, json) {
+          // the error coming back here is already well formed in _decode
           if (err) return self._catchErrors(task, err, uri, cb)
           cb(null, json)
         })
@@ -419,7 +427,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     req.setTimeout(self.timeOut, function () {
       // kill it immediately if a timeout occurs
       req.end()
-      var err = JSON.stringify({message: 'The request timed out after ' + self.timeOut / 1000 + ' seconds.'})
+      var err = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
       self._catchErrors(task, err, uri, cb)
     })
 
@@ -430,7 +438,9 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 
     req.end()
   } catch(e) {
-    self._catchErrors(task, e, uri, cb)
+    console.trace(e)
+    var error = new Error('Unknown failure')
+    self._catchErrors(task, error, uri, cb)
   }
 }
 
@@ -442,7 +452,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 FeatureService.prototype._decode = function (res, data, callback) {
   var json
   var encoding = res.headers['content-encoding']
-  if (!data.length > 0) return callback(new Error('Empty reply from the server'))
+  if (!data.length > 0) return callback(new Error('Response from the server was empty'))
 
   try {
     var buffer = Buffer.concat(data)
@@ -454,10 +464,13 @@ FeatureService.prototype._decode = function (res, data, callback) {
       json = JSON.parse(buffer.toString().replace(/NaN/g, 'null'))
     }
   } catch (e) {
-    callback(e)
+    console.trace(e)
+    callback(new Error('Failed to parse feature response'))
   }
   // ArcGIS Server responds 200 on errors so we have to inspect the payload
-  if (json.error) return callback(json.error)
+  if (json.error) {
+    return callback(json.error)
+  }
   // everything has worked so callback with the decoded JSON
   callback(null, json)
 }
@@ -468,9 +481,13 @@ FeatureService.prototype._decode = function (res, data, callback) {
  * @param {string} url - the url of the last request for pages
  * @param {function} cb - callback passed through to the abort paging function
  */
-FeatureService.prototype._catchErrors = function (task, e, url, cb) {
-  if (!e.message) e.message = e.toString()
-  if (task.retry && task.retry === 3) return this._abortPaging('Failed to request a page of features', url, e.message, e.code, cb)
+FeatureService.prototype._catchErrors = function (task, err, url, cb) {
+  var error = new Error('Request for a page of features failed')
+  error.code = err.code
+  error.url = url
+  error.body = err
+
+  if (task.retry && task.retry === 3) return this._abortPaging(error, cb)
 
   // initiate the count or increment it
   if (!task.retry) {
@@ -484,6 +501,17 @@ FeatureService.prototype._catchErrors = function (task, e, url, cb) {
   setTimeout(function () {
     this._requestFeatures(task, cb)
   }.bind(this), task.retry * 1000)
+}
+
+/**
+ * Aborts the request queue by emptying all queued up tasks
+ * @param {object} error - error payload to send back to the original requestor
+ * @param {function} callback - calls back with the error payload
+ */
+FeatureService.prototype._abortPaging = function (error, callback) {
+  this.pageQueue.kill()
+  error.message = 'Paging aborted: ' + error.message
+  callback(error)
 }
 
 module.exports = FeatureService
