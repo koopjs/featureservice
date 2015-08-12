@@ -35,10 +35,11 @@ var FeatureService = function (url, options) {
   this.timeOut = 1.5 * 60 * 1000
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
 
-  // an async for requesting pages of data
-  this.pageQueue = queue(function (task, callback) {
-    this._requestFeatures(task, callback)
-  }.bind(this), concurrency)
+  // an async queue for requesting pages of data
+  // this.pageQueue = queue(function (task, callback) {
+  //   this._requestFeatures(task, callback)
+  // }.bind(this), concurrency)
+  this.pageQueue = queue(this._requestFeatures, concurrency)
 }
 
 /**
@@ -154,7 +155,7 @@ FeatureService.prototype.getObjectIdField = function (info) {
   var oid
   info.fields.forEach(function (field) {
     if (field.type === 'esriFieldTypeOID') {
-      oid = field.name
+      //oid = field.name
     }
   })
   return oid
