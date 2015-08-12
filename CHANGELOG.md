@@ -77,7 +77,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
-[1.1.0]: https://github.com/chelm/featureservice/ompare/v1.1.0...v1.1.1
+[1.1.1]: https://github.com/chelm/featureservice/ompare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/chelm/featureservice/ompare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/chelm/featureservice/ompare/v0.2.0...v1.0.0
 [0.2.0]: https://github.com/chelm/featureservice/ompare/v0.1.0...v0.2.0
