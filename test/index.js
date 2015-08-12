@@ -188,7 +188,7 @@ test('catching errors with a json payload', function (t) {
     t.equal(info.message, 'Request for a page of features failed')
     t.equal(info.code, error.code)
     t.equal(info.url, error.url)
-    t.equal(info.ref.message, error.message)
+    t.equal(info.body.message, error.message)
     service._abortPaging.restore()
     t.end()
   })

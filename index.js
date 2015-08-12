@@ -139,7 +139,7 @@ FeatureService.prototype.layerInfo = function (callback) {
     if (err || !json || (json && json.error)) {
       var error = new Error('Request for layer information failed')
       error.url = url
-      error.ref = err || json
+      error.body = err || json
 
       return callback(error)
     }
@@ -173,7 +173,7 @@ FeatureService.prototype.layerIds = function (callback) {
     if (err || !json.objectIds) {
       var error = new Error('Request for object IDs failed')
       error.url = url
-      error.ref = json
+      error.body = json
 
       return callback(error)
     }
@@ -285,7 +285,7 @@ FeatureService.prototype.featureCount = function (callback) {
     if (err || json.error) {
       var error = new Error('Request for feature count failed')
       error.url = countUrl
-      error.ref = json
+      error.body = json
 
       return callback(error)
     }
@@ -485,7 +485,7 @@ FeatureService.prototype._catchErrors = function (task, err, url, cb) {
   var error = new Error('Request for a page of features failed')
   error.code = err.code
   error.url = url
-  error.ref = err
+  error.body = err
 
   if (task.retry && task.retry === 3) return this._abortPaging(error, cb)
 
