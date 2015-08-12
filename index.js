@@ -145,7 +145,7 @@ FeatureService.prototype.layerInfo = function (callback) {
     }
     json.url = url
     callback(null, json)
-  }.bind(this))
+  })
 }
 
 /**
@@ -180,7 +180,7 @@ FeatureService.prototype.layerIds = function (callback) {
     // TODO: is this really necessary
     json.objectIds.sort(function (a, b) { return a - b })
     callback(null, json.objectIds)
-  }.bind(this))
+  })
 }
 
 /**
@@ -291,7 +291,7 @@ FeatureService.prototype.featureCount = function (callback) {
     }
 
     callback(null, json)
-  }.bind(this))
+  })
 }
 
 /**
