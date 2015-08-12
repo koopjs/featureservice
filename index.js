@@ -483,6 +483,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
  */
 FeatureService.prototype._catchErrors = function (task, err, url, cb) {
   var error = new Error('Request for a page of features failed')
+  error.code = err.code
   error.url = url
   error.ref = err
 
