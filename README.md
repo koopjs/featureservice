@@ -21,12 +21,12 @@ npm install featureservice
 ## Usage
 
 ```javascript
-  var FeatureService = require('featureservice')
+var FeatureService = require('featureservice')
 
-  // a url to a feature service
-  var url = 'http://....../FeatureServer/0'
+// a url to a feature service
+var url = 'http://....../FeatureServer/0'
 
-  var service = new FeatureService(url, options)
+var service = new FeatureService(url, options)
 ```
 
 ### API
@@ -44,7 +44,6 @@ Get statistics for a field and an array of stats.
 service.statistics('id', ['min', 'max'], function (err, stats) {
   console.log(stats.features)
 })
-
 ```
 
 #### pages(callback)
@@ -66,7 +65,6 @@ A browser ready build of this module is in `dist/featureservice.min.js`.
     })
   </script>
 </html>
-
 ```
 
 ## License
