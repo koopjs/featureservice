@@ -301,7 +301,7 @@ FeatureService.prototype._offsetPages = function (pages, max) {
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * max
-    var pageUrl = url + '/' + (this.options.layer || 0) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
+    var pageUrl = url + '/' + (this.layer) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + max
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
@@ -329,7 +329,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       pageMin = pageMin === 0 ? pageMin : pageMin - 1
       var pageMax = pageIds.pop()
       var where = [oidField, ' > ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
-      var pageUrl = this.url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+      var pageUrl = this.url + '/' + (this.layer) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
