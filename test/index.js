@@ -94,7 +94,7 @@ test('get all feature count for a layer on the service', function (t) {
 test('time out when there is no response', function (t) {
   var error
   service.timeOut = 5
-  nock('http://www.timeout.com').get('/').socketDelay(100)
+  nock('http://www.timeout.com').get('/').socketDelay(100).reply({}.toString())
 
   service.request('http://www.timeout.com', function (err, data) {
     error = err
@@ -154,7 +154,7 @@ test('decoding an empty response', function (t) {
   })
 })
 
-test('should callback with an error when decoding json with an error in the response', function (t) {
+test('should trigger catchErrors with an error when receiving json with an error in the response', function (t) {
   var data = {
     error: {
       code: 400,
@@ -162,13 +162,21 @@ test('should callback with an error when decoding json with an error in the resp
       details: []
     }
   }
-  var res = {headers: {}}
-  var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, [new Buffer(JSON.stringify(data))], function (err, json) {
+  var fixture = nock('http://www.error.com')
+  fixture.get('/').reply(200, JSON.stringify(data))
+
+  sinon.stub(service, '_catchErrors', function (task, err, url, callback) {
+    callback(err)
+  })
+
+  var task = {req: 'http://www.error.com'}
+
+  service._requestFeatures(task, function (err, data) {
     t.notEqual(typeof err, 'undefined')
     t.equal(err.code, 400)
     t.equal(err.message, 'Invalid or missing input parameters.')
+    service._catchErrors.restore()
     t.end()
   })
 })

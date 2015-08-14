@@ -46,6 +46,7 @@ var FeatureService = function (url, options) {
  * @param {string} url
  * @param {function} callback
  */
+ // TODO combine this with _requestFeatures
 FeatureService.prototype.request = function (url, callback) {
   var uri = urlUtils.parse(encodeURI(decodeURI(url)))
   var self = this
@@ -57,7 +58,8 @@ FeatureService.prototype.request = function (url, callback) {
     hostname: uri.hostname,
     path: uri.path,
     headers: {
-      'User-Agent': 'featureservices-node'
+      'User-Agent': 'featureservices-node',
+      'Accept-Encoding': 'gzip, deflate'
     }
   }
 
@@ -74,15 +76,7 @@ FeatureService.prototype.request = function (url, callback) {
     })
 
     response.on('end', function () {
-      var err
-      var json
-      var buffer = Buffer.concat(data)
-      try {
-        json = JSON.parse(buffer.toString())
-      } catch (error) {
-        err = error
-      }
-      callback(err, json)
+      self._decode(response, data, callback)
     })
 
   })
@@ -419,6 +413,8 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
         self._decode(response, data, function (err, json) {
           // the error coming back here is already well formed in _decode
           if (err) return self._catchErrors(task, err, uri, cb)
+          // server responds 200 with error in the payload so we have to inspect
+          if (json.error) return self._catchErrors(task, json.error, uri, cb)
           cb(null, json)
         })
       })
@@ -450,29 +446,26 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
  * @param {function} callback - calls back with either an error or the decoded feature json
  */
 FeatureService.prototype._decode = function (res, data, callback) {
-  var json
   var encoding = res.headers['content-encoding']
   if (!data.length > 0) return callback(new Error('Response from the server was empty'))
 
   try {
     var buffer = Buffer.concat(data)
     if (encoding === 'gzip') {
-      json = JSON.parse(zlib.gunzipSync(buffer).toString().replace(/NaN/g, 'null'))
+      zlib.gunzip(buffer, function (err, data) {
+        callback(err, JSON.parse(data.toString().replace(/NaN/g, 'null')))
+      })
     } else if (encoding === 'deflate') {
-      json = JSON.parse(zlib.inflateSync(buffer).toString())
+      zlib.inflate(buffer, function (err, data) {
+        callback(err, JSON.parse(data.toString().replace(/NaN/g, 'null')))
+      })
     } else {
-      json = JSON.parse(buffer.toString().replace(/NaN/g, 'null'))
+      callback(null, JSON.parse(buffer.toString().replace(/NaN/g, 'null')))
     }
   } catch (e) {
     console.trace(e)
-    callback(new Error('Failed to parse feature response'))
+    callback(new Error('Failed to parse server response'))
   }
-  // ArcGIS Server responds 200 on errors so we have to inspect the payload
-  if (json.error) {
-    return callback(json.error)
-  }
-  // everything has worked so callback with the decoded JSON
-  callback(null, json)
 }
 
 /* Catches an errors during paging and handles retry logic
