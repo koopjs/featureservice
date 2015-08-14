@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Requests are decoded async (for compatibility with node < 0.11.12)
 
 ### Fixed
-* Pages are built correctly for layers with an index > 1
+* Pages are built correctly for layers with an index > 0
 
 ## [1.2.0] - 2015-08-11
 ### Fixed
