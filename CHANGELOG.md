@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* All requests accept gzip or deflate compressed
+* Requests are decoded async (for compatibility with node < 0.11.12)
+
 ## [1.2.0] - 2015-08-11
 ### Fixed
 * Pages based on object ids are now formed correctly
