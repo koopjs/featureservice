@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * All requests accept gzip or deflate compressed
 * Requests are decoded async (for compatibility with node < 0.11.12)
 
+### Fixed
+* Pages are built correctly for layers with an index > 1
+
 ## [1.2.0] - 2015-08-11
 ### Fixed
 * Pages based on object ids are now formed correctly

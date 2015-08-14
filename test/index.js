@@ -5,7 +5,7 @@ var nock = require('nock')
 var fs = require('fs')
 var zlib = require('zlib')
 
-var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0', {objectIdField: 'OBJECTID'})
+var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
 
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
 var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
@@ -34,14 +34,15 @@ test('build id based pages', function (t) {
   var maxCount = 2
   var pages = service._idPages(ids, maxCount)
   t.equal(pages.length, 2)
-  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?outSR=4326&where=OBJECTID > 0 AND OBJECTID<=2&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
-  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?outSR=4326&where=OBJECTID > 2 AND OBJECTID<=4&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID > 0 AND OBJECTID<=2&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID > 2 AND OBJECTID<=4&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
   t.end()
 })
 
 test('build result offset pages', function (t) {
   var maxCount = 100
   var pages = service._offsetPages(4, maxCount)
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&geometryPrecision=')
   t.equal(pages.length, 4)
 
   t.end()
@@ -49,7 +50,7 @@ test('build result offset pages', function (t) {
 
 test('creates an out statistics url', function (t) {
   var url = service._statsUrl('test', ['min', 'max'])
-  t.equal(url, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?f=json&outFields=&outStatistics=[{"statisticType":"min","onStatisticField":"test","outStatisticFieldName":"min_test"},{"statisticType":"max","onStatisticField":"test","outStatisticFieldName":"max_test"}]')
+  t.equal(url, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?f=json&outFields=&outStatistics=[{"statisticType":"min","onStatisticField":"test","outStatisticFieldName":"min_test"},{"statisticType":"max","onStatisticField":"test","outStatisticFieldName":"max_test"}]')
   t.end()
 })
 
@@ -59,7 +60,7 @@ test('get the metadata for a layer on the service', function (t) {
   })
   service.layerInfo(function (err, metadata) {
     t.equal(err, null)
-    t.equal(service.request.calledWith('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0?f=json'), true)
+    t.equal(service.request.calledWith('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1?f=json'), true)
     service.request.restore()
     t.end()
   })
@@ -71,7 +72,7 @@ test('get all the object ids for a layer on the service', function (t) {
   })
   service.layerIds(function (err, metadata) {
     t.equal(err, null)
-    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?where=1=1&returnIdsOnly=true&f=json'
+    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?where=1=1&returnIdsOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
     service.request.restore()
     t.end()
@@ -84,7 +85,7 @@ test('get all feature count for a layer on the service', function (t) {
   })
   service.featureCount(function (err, metadata) {
     t.equal(err, null)
-    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/0/query?where=1=1&returnCountOnly=true&f=json'
+    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?where=1=1&returnCountOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
     service.request.restore()
     t.end()
