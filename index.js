@@ -66,7 +66,6 @@ FeatureService.prototype.request = function (url, callback) {
   // make an http or https request based on the protocol
   var req = ((uri.protocol === 'https:') ? https : http).request(opts, function (response) {
     var data = []
-
     response.on('data', function (chunk) {
       data.push(chunk)
     })
@@ -82,12 +81,14 @@ FeatureService.prototype.request = function (url, callback) {
   })
 
   req.setTimeout(self.timeOut, function () {
-    req.end()
-    callback(new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.'))
+    this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
+    this.error.code = 504
+    req.abort()
   })
 
   req.on('error', function (error) {
-    callback(error)
+    this.error = this.error ? this.error : error
+    callback(this.error)
   })
 
   req.end()
@@ -401,6 +402,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
      // make an http or https request based on the protocol
     var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
       var data = []
+
       response.on('data', function (chunk) {
         data.push(chunk)
       })
@@ -414,7 +416,11 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
           // the error coming back here is already well formed in _decode
           if (err) return self._catchErrors(task, err, uri, cb)
           // server responds 200 with error in the payload so we have to inspect
-          if (json.error) return self._catchErrors(task, json.error, uri, cb)
+          if (json.error) {
+            this.error = new Error('Request for a page of features failed')
+            this.error.body = json.error
+            return self._catchErrors(task, this.error, uri, cb)
+          }
           cb(null, json)
         })
       })
@@ -422,21 +428,24 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 
     req.setTimeout(self.timeOut, function () {
       // kill it immediately if a timeout occurs
-      req.end()
-      var err = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
-      self._catchErrors(task, err, uri, cb)
+      this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
+      this.error.code = 504
+      req.abort()
     })
 
     // we need this error catch to handle ECONNRESET
     req.on('error', function (err) {
-      self._catchErrors(task, err, uri, cb)
+      // if an error came in from setTimeOut, use that, else use the default error
+      var reported = this.error ? this.error : err
+      self._catchErrors(task, reported, uri, cb)
     })
 
     req.end()
   } catch(e) {
     console.trace(e)
-    var error = new Error('Unknown failure')
-    self._catchErrors(task, error, uri, cb)
+    this.error = new Error('Unknown failure')
+    this.error.code = 500
+    self._catchErrors(task, this.error, uri, cb)
   }
 }
 
@@ -474,14 +483,13 @@ FeatureService.prototype._decode = function (res, data, callback) {
  * @param {string} url - the url of the last request for pages
  * @param {function} cb - callback passed through to the abort paging function
  */
-FeatureService.prototype._catchErrors = function (task, err, url, cb) {
-  var error = new Error('Request for a page of features failed')
-  error.code = err.code
+FeatureService.prototype._catchErrors = function (task, error, url, cb) {
+  // be defensive in case there was no json payload
+  error.body = error.body || {}
+  // set the error code from the json payload if the error doesn't have one already
+  if (!error.code) error.code = error.body.code
   error.url = url
-  error.body = err
-
   if (task.retry && task.retry === 3) return this._abortPaging(error, cb)
-
   // initiate the count or increment it
   if (!task.retry) {
     task.retry = 1

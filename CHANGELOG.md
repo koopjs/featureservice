@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+### Changed
+* Errors after timeouts conform to standard
+
+### Fixed
+* Requests are ended correctly after timeouts
+
 ## [1.2.1] - 2015-08-17 
 ### Changed
 * All requests accept gzip or deflate compressed
