@@ -102,6 +102,7 @@ test('time out when there is no response', function (t) {
   })
   setTimeout(function () {
     t.equal(typeof error, 'object')
+    service.timeOut = 1000
     t.end()
   }, 25)
 })
@@ -175,33 +176,11 @@ test('should trigger catchErrors with an error when receiving json with an error
 
   service._requestFeatures(task, function (err, data) {
     t.notEqual(typeof err, 'undefined')
-    t.equal(err.code, 400)
-    t.equal(err.message, 'Invalid or missing input parameters.')
+    t.equal(err.body.code, 400)
+    t.equal(err.body.message, 'Invalid or missing input parameters.')
     service._catchErrors.restore()
     t.end()
   })
-})
-
-test('catching errors with a json payload', function (t) {
-  var service = new FeatureService('http://service.com/mapserver/2')
-  var task = { retry: 3 }
-  var error = new Error('Invalid or missing input parameters.')
-  error.code = 400
-  error.url = 'http://url.com'
-
-  sinon.stub(service, '_abortPaging', function (error, cb) {
-    cb(error)
-  })
-
-  service._catchErrors(task, error, error.url, function (info) {
-    t.equal(info.message, 'Request for a page of features failed')
-    t.equal(info.code, error.code)
-    t.equal(info.url, error.url)
-    t.equal(info.body.message, error.message)
-    service._abortPaging.restore()
-    t.end()
-  })
-
 })
 
 // feature request integration tests
@@ -307,6 +286,51 @@ test('building pages for a version 10.0 server', function (t) {
   service.pages(function (err, pages) {
     t.equal(err, null)
     t.equal(pages.length, 1)
+    t.end()
+  })
+
+})
+
+test('service times out on third try for features', function (t) {
+  var service = new FeatureService('http://www.foobar.com')
+  service.timeOut = 5
+  nock('http://www.foobar.com').get('/').socketDelay(100).reply({}.toString())
+  sinon.stub(service, '_abortPaging', function (err, callback) {
+    callback(err)
+  })
+
+  var task = {
+    retry: 3,
+    req: 'http://www.foobar.com/'
+  }
+  service._requestFeatures(task, function (err) {
+    t.equal(err.code, 504)
+    t.equal(err.url, 'http://www.foobar.com/')
+    t.end()
+  })
+})
+
+test('catching errors with a json payload', function (t) {
+  var service = new FeatureService('http://service.com/mapserver/2')
+  var task = { retry: 3 }
+  var error = new Error('Request for a page of features failed')
+  var body = {
+    code: 400,
+    message: 'Invalid or missing input parameters',
+    details: []
+  }
+  error.body = body
+  error.url = 'http://url.com'
+
+  sinon.stub(service, '_abortPaging', function (error, cb) {
+    cb(error)
+  })
+
+  service._catchErrors(task, error, error.url, function (info) {
+    t.equal(info.message, 'Request for a page of features failed')
+    t.equal(info.url, error.url)
+    t.equal(info.body, body)
+    service._abortPaging.restore()
     t.end()
   })
 
