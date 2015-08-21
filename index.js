@@ -32,7 +32,7 @@ var FeatureService = function (url, options) {
   this.url = url
   this.options = options || {}
   this.layer = layer || this.options.layer || 0
-  this.timeOut = 1.5 * 60 * 500
+  this.timeOut = 1.5 * 60 * 1000
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
 
   // an async for requesting pages of data
