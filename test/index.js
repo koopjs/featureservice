@@ -132,6 +132,19 @@ test('get a json error when trying to get layer info', function (t) {
   })
 })
 
+test('get a json error when trying to get statistics', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, securedFixture)
+  })
+  service.statistics('foo', ['max'], function (err, count) {
+    t.notEqual(typeof err, 'undefined')
+    t.equal(err.code, 499)
+    t.equal(err.body.message, 'Token Required')
+    service.request.restore()
+    t.end()
+  })
+})
+
 test('time out when there is no response', function (t) {
   var error
   service.timeOut = 5
