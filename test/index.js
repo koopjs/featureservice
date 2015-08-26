@@ -11,6 +11,7 @@ var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
 var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
 var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
 var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
+var securedFixture = JSON.parse(fs.readFileSync('./test/fixtures/secured.json'))
 
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
@@ -79,7 +80,7 @@ test('get all the object ids for a layer on the service', function (t) {
   })
 })
 
-test('get all feature count for a layer on the service', function (t) {
+test('get the feature count for a layer on the service', function (t) {
   sinon.stub(service, 'request', function (url, callback) {
     callback(null, countFixture)
   })
@@ -87,6 +88,45 @@ test('get all feature count for a layer on the service', function (t) {
     t.equal(err, null)
     var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?where=1=1&returnCountOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get a json error when trying to get a feature count', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, securedFixture)
+  })
+  service.featureCount(function (err, count) {
+    t.notEqual(typeof err, 'undefined')
+    t.equal(err.code, 499)
+    t.equal(err.body.message, 'Token Required')
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get a json error when trying to get layer ids', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, securedFixture)
+  })
+  service.layerIds(function (err, count) {
+    t.notEqual(typeof err, 'undefined')
+    t.equal(err.code, 499)
+    t.equal(err.body.message, 'Token Required')
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get a json error when trying to get layer info', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, securedFixture)
+  })
+  service.layerInfo(function (err, count) {
+    t.notEqual(typeof err, 'undefined')
+    t.equal(err.code, 499)
+    t.equal(err.body.message, 'Token Required')
     service.request.restore()
     t.end()
   })

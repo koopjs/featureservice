@@ -133,8 +133,9 @@ FeatureService.prototype.layerInfo = function (callback) {
   this.request(url, function (err, json) {
     if (err || !json || (json && json.error)) {
       var error = new Error('Request for layer information failed')
+      error.code = json.error.code || 500
       error.url = url
-      error.body = err || json
+      error.body = err || json.error
 
       return callback(error)
     }
@@ -167,8 +168,9 @@ FeatureService.prototype.layerIds = function (callback) {
   this.request(url, function (err, json) {
     if (err || !json.objectIds) {
       var error = new Error('Request for object IDs failed')
+      error.code = json.error.code || 500
       error.url = url
-      error.body = json
+      error.body = err || json.error
 
       return callback(error)
     }
@@ -276,11 +278,11 @@ FeatureService.prototype.featureCount = function (callback) {
   countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
 
   this.request(countUrl, function (err, json) {
-    // TODO what's in this error object and how can I use it?
     if (err || json.error) {
       var error = new Error('Request for feature count failed')
+      error.code = json.error.code || 500
       error.url = countUrl
-      error.body = json
+      error.body = err || json.error
 
       return callback(error)
     }
