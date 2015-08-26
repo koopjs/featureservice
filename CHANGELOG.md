@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.2.2] - 2015-08-26
 ### Changed
 * Errors after timeouts conform to standard
 * Errors on metadata requests conform to standard
@@ -93,6 +93,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.2.2]: https://github.com/koopjs/featureservice/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/koopjs/featureservice/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/koopjs/featureservice/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/koopjs/featureservice/compare/v1.1.0...v1.1.1
