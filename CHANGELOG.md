@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 * Errors after timeouts conform to standard
+* Errors on metadata requests conform to standard
 
 ### Fixed
 * Requests are ended correctly after timeouts

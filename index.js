@@ -121,7 +121,18 @@ FeatureService.prototype._statsUrl = function (field, stats) {
  * @param {array} stats - an array of stats to request: ['min', 'max', 'avg', 'stddev', 'count']
  */
 FeatureService.prototype.statistics = function (field, stats, callback) {
-  this.request(this._statsUrl(field, stats), callback)
+  var url = this._statsUrl(field, stats)
+  this.request(url, function (err, json) {
+    if (err || json.error) {
+      var error = new Error('Request for statistics failed')
+      error.timestamp = new Date()
+      error.code = json.error.code || 500
+      error.body = err || json.error
+      error.url = url
+      return callback(error)
+    }
+    callback(null, json)
+  })
 }
 
 /**
@@ -133,8 +144,10 @@ FeatureService.prototype.layerInfo = function (callback) {
   this.request(url, function (err, json) {
     if (err || !json || (json && json.error)) {
       var error = new Error('Request for layer information failed')
+      error.timeStamp = new Date()
+      error.code = json.error.code || 500
       error.url = url
-      error.body = err || json
+      error.body = err || json.error
 
       return callback(error)
     }
@@ -167,8 +180,10 @@ FeatureService.prototype.layerIds = function (callback) {
   this.request(url, function (err, json) {
     if (err || !json.objectIds) {
       var error = new Error('Request for object IDs failed')
+      error.timeStamp = new Date()
+      error.code = json.error.code || 500
       error.url = url
-      error.body = json
+      error.body = err || json.error
 
       return callback(error)
     }
@@ -256,8 +271,9 @@ FeatureService.prototype.pages = function (callback) {
  */
 FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
 
-  this.statistics(meta.oid, ['min', 'max'], function (reqErr, stats) {
-    if (reqErr || stats.error) return callback(new Error('statistics request failed'))
+  this.statistics(meta.oid, ['min', 'max'], function (err, stats) {
+    // TODO this is handled elsewhere now so move it
+    if (err) return callback(err)
     var attrs = stats.features[0].attributes
     // dmf: what's up with this third strategy?
     var names = stats && stats.fieldAliases ? Object.keys(stats.fieldAliases) : null
@@ -276,11 +292,12 @@ FeatureService.prototype.featureCount = function (callback) {
   countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
 
   this.request(countUrl, function (err, json) {
-    // TODO what's in this error object and how can I use it?
     if (err || json.error) {
       var error = new Error('Request for feature count failed')
+      error.timeStamp = new Date()
+      error.code = json.error.code || 500
       error.url = countUrl
-      error.body = json
+      error.body = err || json.error
 
       return callback(error)
     }
@@ -418,6 +435,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
           // server responds 200 with error in the payload so we have to inspect
           if (json.error) {
             this.error = new Error('Request for a page of features failed')
+            this.error.timeStamp = new Date()
             this.error.body = json.error
             return self._catchErrors(task, this.error, uri, cb)
           }
@@ -429,6 +447,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     req.setTimeout(self.timeOut, function () {
       // kill it immediately if a timeout occurs
       this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
+      this.error.timestamp = new Date()
       this.error.code = 504
       req.abort()
     })
@@ -437,6 +456,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     req.on('error', function (err) {
       // if an error came in from setTimeOut, use that, else use the default error
       var reported = this.error ? this.error : err
+      reported.timestamp = reported.timestamp || new Date()
       self._catchErrors(task, reported, uri, cb)
     })
 
