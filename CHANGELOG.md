@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Do not exclude object ids === 0 when building pages
+
 ## [1.2.2] - 2015-08-26
 ### Changed
 * Errors after timeouts conform to standard
