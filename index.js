@@ -31,6 +31,7 @@ var FeatureService = function (url, options) {
 
   this.url = url
   this.options = options || {}
+  this.options.size = this.options.size || 5000
   this.layer = layer || this.options.layer || 0
   this.timeOut = 1.5 * 60 * 1000
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
@@ -233,6 +234,9 @@ FeatureService.prototype.pages = function (callback) {
     if (err) return callback(err)
 
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
+    // restrict page size to the passed in maximum
+    if (size > 5000) size = this.options.maxPageSize
+
     var layer = meta.layer
     var nPages = Math.ceil(meta.count / size)
 
@@ -309,19 +313,20 @@ FeatureService.prototype.featureCount = function (callback) {
 /**
  * build result Offset based page requests
  * these pages use Server's built in paging via resultOffset and resultRecordCount
- * @param {number} pages - the number of pages we'll create
- * @param {number} max - the max number of feature per page
+ * @param {integer} pages - the number of pages we'll create
+ * @param {integer} size - the max number of features per page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
-FeatureService.prototype._offsetPages = function (pages, max) {
+FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
   var resultOffset
   var url = this.url
 
   for (var i = 0; i < pages; i++) {
-    resultOffset = i * max
+    resultOffset = i * size
     var pageUrl = url + '/' + (this.layer) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
     pageUrl += '&resultOffset=' + resultOffset
-    pageUrl += '&resultRecordCount=' + max
+    pageUrl += '&resultRecordCount=' + size
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
@@ -333,7 +338,8 @@ FeatureService.prototype._offsetPages = function (pages, max) {
  * build `id` query based page requests
  * these pages use object ids in URLs directly
  * @param {array} ids - an array of each object id in the service
- * @param {number} maxCount - the max record count for each page
+ * @param {integer} size - the max record count for each page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
@@ -359,9 +365,9 @@ FeatureService.prototype._idPages = function (ids, size) {
  * build object id query based page requests
  * these pages use object ids in where clauses via < and >
  * you could call this objectId queries
- * @param {number} min - the max object id in the service
- * @param {number} max - the max object id in the service
- * @param {number} maxCount - the max record count for each page
+ * @param {object} stats - contains the max and min object id
+ * @param {integer} size - the size of records to include in each page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._rangePages = function (stats, size) {
   var reqs = []
@@ -383,8 +389,8 @@ FeatureService.prototype._rangePages = function (stats, size) {
       pageMax = stats.min + (size * (i + 1)) - 1
     }
     pageMin = stats.min + (size * i)
-    where = objId + '<=' + pageMax + '+AND+' + objId + '>=' + pageMin
-    pageUrl = url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+    where = [objId, '>=', pageMin, '+AND+', objId, '<=', pageMax].join('')
+    pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }

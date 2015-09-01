@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Restrict max record count to 5000 or less
+
+### Fixed
+* Pages generated from statistics use the correct layer when index > 0
+
 ## [1.2.3]
 ### Fixed
 * Do not exclude object ids === 0 when building pages
