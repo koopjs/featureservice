@@ -313,8 +313,9 @@ FeatureService.prototype.featureCount = function (callback) {
 /**
  * build result Offset based page requests
  * these pages use Server's built in paging via resultOffset and resultRecordCount
- * @param {number} pages - the number of pages we'll create
- * @param {number} max - the max number of feature per page
+ * @param {integer} pages - the number of pages we'll create
+ * @param {integer} size - the max number of features per page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
@@ -337,7 +338,8 @@ FeatureService.prototype._offsetPages = function (pages, size) {
  * build `id` query based page requests
  * these pages use object ids in URLs directly
  * @param {array} ids - an array of each object id in the service
- * @param {number} maxCount - the max record count for each page
+ * @param {integer} size - the max record count for each page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
@@ -363,9 +365,9 @@ FeatureService.prototype._idPages = function (ids, size) {
  * build object id query based page requests
  * these pages use object ids in where clauses via < and >
  * you could call this objectId queries
- * @param {number} min - the max object id in the service
- * @param {number} max - the max object id in the service
- * @param {number} maxCount - the max record count for each page
+ * @param {object} stats - contains the max and min object id
+ * @param {integer} size - the size of records to include in each page
+ * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._rangePages = function (stats, size) {
   var reqs = []
