@@ -24,6 +24,8 @@ test('build offset pages', function (t) {
   var pages
   var stats = {min: 0, max: 2000}
   pages = service._rangePages(stats, stats.max / 2)
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=0+AND+OBJECTID<=999&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=1000+AND+OBJECTID<=2000&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=')
   t.equal(pages.length, 2)
   pages = service._rangePages(stats, stats.max / 4)
   t.equal(pages.length, 4)
@@ -45,6 +47,7 @@ test('build result offset pages', function (t) {
   var maxCount = 100
   var pages = service._offsetPages(4, maxCount)
   t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=100&resultRecordCount=100&geometry=&returnGeometry=true&geometryPrecision=')
   t.equal(pages.length, 4)
 
   t.end()

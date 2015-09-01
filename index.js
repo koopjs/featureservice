@@ -312,16 +312,17 @@ FeatureService.prototype.featureCount = function (callback) {
  * @param {number} pages - the number of pages we'll create
  * @param {number} max - the max number of feature per page
  */
-FeatureService.prototype._offsetPages = function (pages, max) {
+FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
   var resultOffset
   var url = this.url
+  size = size > 5000 ? 5000 : size
 
   for (var i = 0; i < pages; i++) {
-    resultOffset = i * max
+    resultOffset = i * size
     var pageUrl = url + '/' + (this.layer) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
     pageUrl += '&resultOffset=' + resultOffset
-    pageUrl += '&resultRecordCount=' + max
+    pageUrl += '&resultRecordCount=' + size
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
@@ -339,6 +340,7 @@ FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
   var oidField = this.options.objectIdField || 'objectId'
   var pages = (ids.length / size)
+  size = size > 5000 ? 5000 : size
 
   for (var i = 0; i < pages + 1; i++) {
     var pageIds = ids.splice(0, size)
@@ -370,6 +372,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
   var pageMin
   var where
   var objId = this.options.objectIdField
+  size = size > 5000 ? 5000 : size
 
   var url = this.url
   var pages = Math.max((stats.max === size) ? stats.max : Math.ceil((stats.max - stats.min) / size), 1)
@@ -383,8 +386,8 @@ FeatureService.prototype._rangePages = function (stats, size) {
       pageMax = stats.min + (size * (i + 1)) - 1
     }
     pageMin = stats.min + (size * i)
-    where = objId + '<=' + pageMax + '+AND+' + objId + '>=' + pageMin
-    pageUrl = url + '/' + (this.options.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+    where = [objId, '>=', pageMin, '+AND+', objId, '<=', pageMax].join('')
+    pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
