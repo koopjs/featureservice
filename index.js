@@ -31,6 +31,7 @@ var FeatureService = function (url, options) {
 
   this.url = url
   this.options = options || {}
+  this.options.size = this.options.size || 5000
   this.layer = layer || this.options.layer || 0
   this.timeOut = 1.5 * 60 * 1000
   var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
@@ -233,6 +234,9 @@ FeatureService.prototype.pages = function (callback) {
     if (err) return callback(err)
 
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
+    // restrict page size to the passed in maximum
+    if (size > 5000) size = this.options.maxPageSize
+
     var layer = meta.layer
     var nPages = Math.ceil(meta.count / size)
 
@@ -316,7 +320,6 @@ FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
   var resultOffset
   var url = this.url
-  size = size > 5000 ? 5000 : size
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
@@ -340,7 +343,6 @@ FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
   var oidField = this.options.objectIdField || 'objectId'
   var pages = (ids.length / size)
-  size = size > 5000 ? 5000 : size
 
   for (var i = 0; i < pages + 1; i++) {
     var pageIds = ids.splice(0, size)
@@ -372,7 +374,6 @@ FeatureService.prototype._rangePages = function (stats, size) {
   var pageMin
   var where
   var objId = this.options.objectIdField
-  size = size > 5000 ? 5000 : size
 
   var url = this.url
   var pages = Math.max((stats.max === size) ? stats.max : Math.ceil((stats.max - stats.min) / size), 1)
