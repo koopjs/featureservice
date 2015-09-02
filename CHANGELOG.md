@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Uncaught error when `json.error` doesn't exist in `FeatureService.layerInfo`
+
 ## [1.2.4] - 2015-09-01
 ### Changed
 * Restrict max record count to 5000 or less
@@ -21,7 +25,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 * Requests are ended correctly after timeouts
 
-## [1.2.1] - 2015-08-17 
+## [1.2.1] - 2015-08-17
 ### Changed
 * All requests accept gzip or deflate compressed
 * Requests are decoded async (for compatibility with node < 0.11.12)

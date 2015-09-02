@@ -142,16 +142,30 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
  */
 FeatureService.prototype.layerInfo = function (callback) {
   var url = this.url + '/' + this.layer + '?f=json'
+
   this.request(url, function (err, json) {
-    if (err || !json || (json && json.error)) {
+    /**
+     * returns error on three conditions:
+     * 1. err is present
+     * 2. missing response json
+     * 3. error in response json
+     */
+    if (err || !json || json.error) {
       var error = new Error('Request for layer information failed')
       error.timeStamp = new Date()
-      error.code = json.error.code || 500
       error.url = url
-      error.body = err || json.error
+
+      if (json.error) {
+        error.code = json.error.code || 500
+        error.body = json.error
+      } else {
+        error.code = 500
+        error.body = err || 'missing response json'
+      }
 
       return callback(error)
     }
+
     json.url = url
     callback(null, json)
   })
