@@ -24,7 +24,8 @@ var FeatureService = function (url, options) {
   var end = url.split('/').pop()
   var layer
   if (parseInt(end, 10) >= 0) {
-    layer = end
+    // protect against layers coming in with query strings
+    layer = end.split('?')[0]
     var len = ('' + layer).length
     url = url.substring(0, url.length - ((len || 2) + 1))
   }

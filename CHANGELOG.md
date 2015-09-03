@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased 
+### Fixed
+* Don't set a layer id with a query string
+
 ## [1.2.5] - 2015-09-02
 ### Fixed
 * Uncaught error when `json.error` doesn't exist in `FeatureService.layerInfo`
