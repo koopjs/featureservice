@@ -27,10 +27,12 @@ var FeatureService = function (url, options) {
     // protect against layers coming in with query strings
     layer = end.split('?')[0]
     var len = ('' + layer).length
-    url = url.substring(0, url.length - ((len || 2) + 1))
+    // protect against urls with query strings
+    // TODO clean up this confusing logic
+    url = url.substring(0, url.length - ((len || 2) + 1)).split('?')[0]
   }
 
-  this.url = url
+  this.url = url.split('?')[0]
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.layer = layer || this.options.layer || 0

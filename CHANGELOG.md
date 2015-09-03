@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased 
 ### Fixed
 * Don't set a layer id with a query string
+* Don't set a url with a query string
 
 ## [1.2.5] - 2015-09-02
 ### Fixed
