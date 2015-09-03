@@ -21,15 +21,16 @@ var FeatureService = function (url, options) {
 
   // check the last char on the url
   // protects us from urls registered with layers already in the url
-  var end = url.split('/').pop()
+  var end = url.split('/').pop().split('?')[0]
   var layer
   if (parseInt(end, 10) >= 0) {
     // protect against layers coming in with query strings
-    layer = end.split('?')[0]
+    layer = end
     var len = ('' + layer).length
     // protect against urls with query strings
     // TODO clean up this confusing logic
-    url = url.substring(0, url.length - ((len || 2) + 1)).split('?')[0]
+    url = url.split('?')[0]
+    url = url.substring(0, url.length - ((len || 2) + 1))
   }
 
   this.url = url.split('?')[0]

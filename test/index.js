@@ -13,6 +13,13 @@ var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
 var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
 var securedFixture = JSON.parse(fs.readFileSync('./test/fixtures/secured.json'))
 
+test('create a service with query strings in the parameters', function (t) {
+  var serv = new FeatureService('http://koop.whatever.com/FeatureServer/2?f=json', {layer: '2?f=json'})
+  t.equal(serv.layer.toString(), '2')
+  t.equal(serv.url, 'http://koop.whatever.com/FeatureServer')
+  t.end()
+})
+
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
   t.equal(oid, 'ESRI_OID')

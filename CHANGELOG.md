@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Correct logic for correcting against poorly instantiated FeatureServices
+
 ## [1.2.6] - 2015-09-02 
 ### Fixed
 * Don't set a layer id with a query string
