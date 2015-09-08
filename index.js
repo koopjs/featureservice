@@ -82,7 +82,6 @@ FeatureService.prototype.request = function (url, callback) {
     response.on('end', function () {
       self._decode(response, data, callback)
     })
-
   })
 
   req.setTimeout(self.timeOut, function () {
@@ -314,7 +313,6 @@ FeatureService.prototype.pages = function (callback) {
  * @param {function} callback - returns with an error or objectID stats
  */
 FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
-
   this.statistics(meta.oid, ['min', 'max'], function (err, stats) {
     // TODO this is handled elsewhere now so move it
     if (err) return callback(err)
