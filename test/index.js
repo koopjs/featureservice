@@ -325,6 +325,7 @@ test('requesting a page of features', function (t) {
   var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
+    t.error(err)
     t.equal(json.features.length, 1000)
     t.end()
   })
@@ -399,7 +400,6 @@ test('building pages from a layer where statistics fail', function (t) {
     t.equal(pages.length, 4)
     t.end()
   })
-
 })
 
 test('building pages for a version 10.0 server', function (t) {
@@ -421,8 +421,7 @@ test('building pages for a version 10.0 server', function (t) {
 })
 
 test('service times out on third try for features', function (t) {
-  var service = new FeatureService('http://www.foobar.com')
-  service.timeOut = 5
+  var service = new FeatureService('http://www.foobar.com', {timeOut: 5})
   nock('http://www.foobar.com').get('/').socketDelay(100).reply({}.toString())
   sinon.stub(service, '_abortPaging', function (err, callback) {
     callback(err)
@@ -462,6 +461,27 @@ test('catching errors with a json payload', function (t) {
     service._abortPaging.restore()
     t.end()
   })
+})
 
+test('logging with a passed in logger', function (t) {
+  var logger = {}
+  logger.log = function (level, message) {
+    t.equal(level, 'test')
+    t.equal(message, 'test')
+    t.end()
+  }
+  var service = new FeatureService('htt://service.com/mapserver/3', {logger: logger})
+  service.log('test', 'test')
+})
+
+test('logging without a passed in logger', function (t) {
+  sinon.stub(service, '_console', function (level, message) {
+    t.equal(level, 'test')
+    t.equal(message, 'test')
+    service._console.restore()
+    t.end()
+  })
+
+  service.log('test', 'test')
 })
 

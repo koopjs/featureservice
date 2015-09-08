@@ -29,6 +29,14 @@ var url = 'http://....../FeatureServer/0'
 var service = new FeatureService(url, options)
 ```
 
+### Options
+An object passed as the second parameter when initializing a service
+- layer: the layer index to use
+- size: the maximum page size when requesting features
+- concurrency: the maximum concurrency for requesting features from a single server
+- timeOut: the amount of time to wait with no response before cancelling a request
+- logger: An object with a log method that takes a level and a message e.g. a Winston instance
+
 ### API
 
 #### layerIds(callback)

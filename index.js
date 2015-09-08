@@ -32,18 +32,53 @@ var FeatureService = function (url, options) {
     url = url.split('?')[0]
     url = url.substring(0, url.length - ((len || 2) + 1))
   }
-
   this.url = url.split('?')[0]
+
   this.options = options || {}
   this.options.size = this.options.size || 5000
+  this.options.concurrency = this.options.concurrency || this.url.split('//')[1].match(/^service/) ? 16 : 4
+  this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
+
   this.layer = layer || this.options.layer || 0
-  this.timeOut = 1.5 * 60 * 1000
-  var concurrency = this.url.split('//')[1].match(/^service/) ? 16 : 4
+  this.logger = this.options.logger
 
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
-  }.bind(this), concurrency)
+  }.bind(this), this.options.concurrency)
+}
+
+/**
+ * Wraps logging functionality so a logger can be passed in
+ *
+ * @param {string} level - the log level to use
+ * @param {string} message - the message to log
+ */
+FeatureService.prototype.log = function (level, message) {
+  if (this.logger && this.logger.log) return this.logger.log(level, message)
+  this._console(level, message)
+}
+
+/**
+ * Wraps console logging to make it testable
+ *
+ * @param {string} level - the log level to use
+ * @param {string} message - the message to log
+ */
+FeatureService.prototype._console = function (level, message) {
+  switch (level) {
+    case 'info':
+      console.info(message)
+      break
+    case 'warn':
+      console.warn(message)
+      break
+    case 'error':
+      console.error(message)
+      break
+    default:
+      console.log(message)
+  }
 }
 
 /**
@@ -84,8 +119,8 @@ FeatureService.prototype.request = function (url, callback) {
     })
   })
 
-  req.setTimeout(self.timeOut, function () {
-    this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
+  req.setTimeout(self.options.timeOut, function () {
+    this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
     this.error.code = 504
     req.abort()
   })
@@ -466,8 +501,8 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
       })
     })
 
-    req.setTimeout(self.timeOut, function () {
-      this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
+    req.setTimeout(self.options.timeOut, function () {
+      this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
       this.error.timestamp = new Date()
       this.error.code = 504
       req.abort()
@@ -483,7 +518,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 
     req.end()
   } catch(e) {
-    console.trace(e)
+    this.log('error', e.message)
     this.error = new Error('Unknown failure')
     this.error.code = 500
     self._catchErrors(task, this.error, uri, cb)
@@ -522,7 +557,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
     if (response.slice(0, 1).match(pattern)) {
       return callback(new Error('Received HTML or plain text when expecting JSON'))
     }
-    console.trace(e)
+    this.log('error', e)
     callback(new Error('Failed to parse server response'))
   }
 }
@@ -547,7 +582,7 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
     task.retry++
   }
 
-  console.log('Re-requesting page', task.req, task.retry)
+  this.log('info', 'Re-requesting page ' + 'task.req ' + 'task.retry')
 
   setTimeout(function () {
     this._requestFeatures(task, cb)
