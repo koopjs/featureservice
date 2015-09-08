@@ -218,7 +218,7 @@ test('time out when there is no response', function (t) {
 test('decoding something that is gzipped', function (t) {
   var json = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
   zlib.gzip(json, function (err, gzipped) {
-    if (err) t.end()
+    t.error(err)
     var data = [gzipped]
     var res = {headers: {'content-encoding': 'gzip'}}
     var service = new FeatureService('http://service.com/mapserver/2')
@@ -234,7 +234,7 @@ test('decoding something that is gzipped', function (t) {
 test('decoding something that is deflated', function (t) {
   var json = JSON.stringify(JSON.parse((fs.readFileSync('./test/fixtures/uncompressed.json'))))
   zlib.deflate(json, function (err, deflated) {
-    if (err) t.end()
+    t.error(err)
     var data = [deflated]
     var res = {headers: {'content-encoding': 'deflate'}}
 
@@ -252,6 +252,7 @@ test('decoding something that is not compressed', function (t) {
   var res = {headers: {}}
 
   service._decode(res, data, function (err, json) {
+    t.error(err)
     t.equal(json.features.length, 2000)
     t.end()
   })
@@ -417,7 +418,6 @@ test('building pages for a version 10.0 server', function (t) {
     t.equal(pages.length, 1)
     t.end()
   })
-
 })
 
 test('service times out on third try for features', function (t) {
