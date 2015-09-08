@@ -82,7 +82,6 @@ FeatureService.prototype.request = function (url, callback) {
     response.on('end', function () {
       self._decode(response, data, callback)
     })
-
   })
 
   req.setTimeout(self.timeOut, function () {
@@ -129,6 +128,7 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
   var url = this._statsUrl(field, stats)
   this.request(url, function (err, json) {
     if (err || json.error) {
+      if (!json) json = {error: {}}
       var error = new Error('Request for statistics failed')
       error.timestamp = new Date()
       error.code = json.error.code || 500
@@ -155,17 +155,12 @@ FeatureService.prototype.layerInfo = function (callback) {
      * 3. error in response json
      */
     if (err || !json || json.error) {
+      if (!json) json = {error: {}}
       var error = new Error('Request for layer information failed')
-      error.timeStamp = new Date()
+      error.timestamp = new Date()
       error.url = url
-
-      if (json.error) {
-        error.code = json.error.code || 500
-        error.body = json.error
-      } else {
-        error.code = 500
-        error.body = err || 'missing response json'
-      }
+      error.code = json.error.code || 500
+      error.body = json.error
 
       return callback(error)
     }
@@ -198,8 +193,9 @@ FeatureService.prototype.layerIds = function (callback) {
   var url = this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json'
   this.request(url, function (err, json) {
     if (err || !json.objectIds) {
+      if (!json) json = {error: {}}
       var error = new Error('Request for object IDs failed')
-      error.timeStamp = new Date()
+      error.timestamp = new Date()
       error.code = json.error.code || 500
       error.url = url
       error.body = err || json.error
@@ -209,6 +205,31 @@ FeatureService.prototype.layerIds = function (callback) {
     // TODO: is this really necessary
     json.objectIds.sort(function (a, b) { return a - b })
     callback(null, json.objectIds)
+  })
+}
+
+/**
+ * Count of every single feature in the service
+ * @param {object} callback - called when the service info comes back
+ */
+FeatureService.prototype.featureCount = function (callback) {
+  var countUrl = this.url + '/' + (this.layer || 0)
+  countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
+
+  this.request(countUrl, function (err, json) {
+    if (err || json.error) {
+      // init empty json error so we can handle building the error in one logic stream
+      if (!json) json = {error: {}}
+      var error = new Error('Request for feature count failed')
+      error.timestamp = new Date()
+      error.code = json.error.code || 500
+      error.url = countUrl
+      error.body = err || json.error
+
+      return callback(error)
+    }
+
+    callback(null, json)
   })
 }
 
@@ -292,7 +313,6 @@ FeatureService.prototype.pages = function (callback) {
  * @param {function} callback - returns with an error or objectID stats
  */
 FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
-
   this.statistics(meta.oid, ['min', 'max'], function (err, stats) {
     // TODO this is handled elsewhere now so move it
     if (err) return callback(err)
@@ -302,29 +322,6 @@ FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
     var min = attrs.min || attrs.MIN || attrs[names[0]]
     var max = attrs.max || attrs.MAX || attrs[names[1]]
     callback(null, {min: min, max: max})
-  })
-}
-
-/**
- * Count of every single feature in the service
- * @param {object} callback - called when the service info comes back
- */
-FeatureService.prototype.featureCount = function (callback) {
-  var countUrl = this.url + '/' + (this.layer || 0)
-  countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
-
-  this.request(countUrl, function (err, json) {
-    if (err || json.error) {
-      var error = new Error('Request for feature count failed')
-      error.timeStamp = new Date()
-      error.code = json.error.code || 500
-      error.url = countUrl
-      error.body = err || json.error
-
-      return callback(error)
-    }
-
-    callback(null, json)
   })
 }
 
@@ -456,10 +453,12 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
           // the error coming back here is already well formed in _decode
           if (err) return self._catchErrors(task, err, uri, cb)
           // server responds 200 with error in the payload so we have to inspect
-          if (json.error) {
+          if (!json || json.error) {
+            if (!json) json = {error: {}}
             this.error = new Error('Request for a page of features failed')
-            this.error.timeStamp = new Date()
+            this.error.timestamp = new Date()
             this.error.body = json.error
+            this.error.code = json.error.code || 500
             return self._catchErrors(task, this.error, uri, cb)
           }
           cb(null, json)
@@ -468,7 +467,6 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     })
 
     req.setTimeout(self.timeOut, function () {
-      // kill it immediately if a timeout occurs
       this.error = new Error('The request timed out after ' + self.timeOut / 1000 + ' seconds.')
       this.error.timestamp = new Date()
       this.error.code = 504
@@ -503,18 +501,27 @@ FeatureService.prototype._decode = function (res, data, callback) {
 
   try {
     var buffer = Buffer.concat(data)
+    var response
     if (encoding === 'gzip') {
       zlib.gunzip(buffer, function (err, data) {
-        callback(err, JSON.parse(data.toString().replace(/NaN/g, 'null')))
+        response = data.toString().replace(/NaN/g, 'null')
+        callback(err, JSON.parse(response))
       })
     } else if (encoding === 'deflate') {
       zlib.inflate(buffer, function (err, data) {
-        callback(err, JSON.parse(data.toString().replace(/NaN/g, 'null')))
+        response = data.toString().replace(/NaN/g, 'null')
+        callback(err, JSON.parse(response))
       })
     } else {
-      callback(null, JSON.parse(buffer.toString().replace(/NaN/g, 'null')))
+      response = data.toString().replace(/NaN/g, 'null')
+      callback(null, JSON.parse(response))
     }
   } catch (e) {
+    // sometimes we get html or plain strings back
+    var pattern = new RegExp(/[^{\[]/)
+    if (response.slice(0, 1).match(pattern)) {
+      return callback(new Error('Received HTML or plain text when expecting JSON'))
+    }
     console.trace(e)
     callback(new Error('Failed to parse server response'))
   }

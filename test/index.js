@@ -117,6 +117,17 @@ test('get a json error when trying to get a feature count', function (t) {
   })
 })
 
+test('get an error with no response body when trying to get a feature count', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(new Error(), null)
+  })
+  service.featureCount(function (err, count) {
+    t.equal(err.code, 500)
+    service.request.restore()
+    t.end()
+  })
+})
+
 test('get a json error when trying to get layer ids', function (t) {
   sinon.stub(service, 'request', function (url, callback) {
     callback(null, securedFixture)
@@ -125,6 +136,17 @@ test('get a json error when trying to get layer ids', function (t) {
     t.notEqual(typeof err, 'undefined')
     t.equal(err.code, 499)
     t.equal(err.body.message, 'Token Required')
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get an error with no response body when trying to get layer ids', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(new Error(), null)
+  })
+  service.layerIds(function (err, count) {
+    t.equal(err.code, 500)
     service.request.restore()
     t.end()
   })
@@ -143,6 +165,17 @@ test('get a json error when trying to get layer info', function (t) {
   })
 })
 
+test('get an error with no response body when trying to get layer info', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(new Error(), null)
+  })
+  service.layerInfo(function (err, count) {
+    t.equal(err.code, 500)
+    service.request.restore()
+    t.end()
+  })
+})
+
 test('get a json error when trying to get statistics', function (t) {
   sinon.stub(service, 'request', function (url, callback) {
     callback(null, securedFixture)
@@ -151,6 +184,17 @@ test('get a json error when trying to get statistics', function (t) {
     t.notEqual(typeof err, 'undefined')
     t.equal(err.code, 499)
     t.equal(err.body.message, 'Token Required')
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get an error with no response body when trying to get statistics', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(new Error(), null)
+  })
+  service.statistics('foo', [], function (err, count) {
+    t.equal(err.code, 500)
     service.request.restore()
     t.end()
   })
@@ -173,27 +217,32 @@ test('time out when there is no response', function (t) {
 
 test('decoding something that is gzipped', function (t) {
   var json = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
-  var gzipped = zlib.gzipSync(json)
-  var data = [gzipped]
-  var res = {headers: {'content-encoding': 'gzip'}}
-  var service = new FeatureService('http://service.com/mapserver/2')
+  zlib.gzip(json, function (err, gzipped) {
+    t.error(err)
+    var data = [gzipped]
+    var res = {headers: {'content-encoding': 'gzip'}}
+    var service = new FeatureService('http://service.com/mapserver/2')
 
-  service._decode(res, data, function (err, json) {
-    t.equal(json.features.length, 2000)
-    t.end()
+    service._decode(res, data, function (error, json) {
+      t.equal(error, null)
+      t.equal(json.features.length, 2000)
+      t.end()
+    })
   })
 })
 
 test('decoding something that is deflated', function (t) {
   var json = JSON.stringify(JSON.parse((fs.readFileSync('./test/fixtures/uncompressed.json'))))
-  var deflated = zlib.deflateSync(json)
-  var data = [deflated]
-  var res = {headers: {'content-encoding': 'deflate'}}
-  var service = new FeatureService('http://service.com/mapserver/2')
+  zlib.deflate(json, function (err, deflated) {
+    t.error(err)
+    var data = [deflated]
+    var res = {headers: {'content-encoding': 'deflate'}}
 
-  service._decode(res, data, function (err, json) {
-    t.equal(json.features.length, 2000)
-    t.end()
+    service._decode(res, data, function (error, json) {
+      t.equal(error, null)
+      t.equal(json.features.length, 2000)
+      t.end()
+    })
   })
 })
 
@@ -201,9 +250,9 @@ test('decoding something that is not compressed', function (t) {
   var uncompressed = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
   var data = [new Buffer(uncompressed)]
   var res = {headers: {}}
-  var service = new FeatureService('http://service.com/mapserver/2')
 
   service._decode(res, data, function (err, json) {
+    t.error(err)
     t.equal(json.features.length, 2000)
     t.end()
   })
@@ -212,10 +261,27 @@ test('decoding something that is not compressed', function (t) {
 test('decoding an empty response', function (t) {
   var empty = []
   var res = {headers: {'content-encoding': 'gzip'}}
-  var service = new FeatureService('http://service.com/mapserver/2')
 
   service._decode(res, empty, function (err, json) {
     t.notEqual(typeof err, 'undefined')
+    t.end()
+  })
+})
+
+test('decoding an unexpected HMTL response', function (t) {
+  var res = {headers: {'content-encoding': ''}}
+  var data = [new Buffer('</html></html>')]
+  service._decode(res, data, function (err) {
+    t.equal(err.message, 'Received HTML or plain text when expecting JSON')
+    t.end()
+  })
+})
+
+test('decoding an unexpected plain text response', function (t) {
+  var res = {headers: {'content-encoding': ''}}
+  var data = [new Buffer('Bad request')]
+  service._decode(res, data, function (err) {
+    t.equal(err.message, 'Received HTML or plain text when expecting JSON')
     t.end()
   })
 })
@@ -352,7 +418,6 @@ test('building pages for a version 10.0 server', function (t) {
     t.equal(pages.length, 1)
     t.end()
   })
-
 })
 
 test('service times out on third try for features', function (t) {
