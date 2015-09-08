@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+### Added
+* Allow a logger to be passed in through options.logger when initializing a new service 
+
 ### Fixed
 * Don't throw exception when there is no error in the json returned from server
 * Catch non-json responses explicitly
