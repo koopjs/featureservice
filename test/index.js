@@ -469,7 +469,6 @@ test('logging with a passed in logger', function (t) {
   logger.log = function (level, message) {
     t.equal(level, 'test')
     t.equal(message, 'test')
-    t.end()
   }
   var service = new FeatureService('htt://service.com/mapserver/3', {logger: logger})
   service.log('test', 'test')
@@ -481,7 +480,6 @@ test('logging without a passed in logger', function (t) {
     t.equal(level, 'test')
     t.equal(message, 'test')
     service._console.restore()
-    t.end()
   })
 
   service.log('test', 'test')
