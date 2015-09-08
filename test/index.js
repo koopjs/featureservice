@@ -465,6 +465,7 @@ test('catching errors with a json payload', function (t) {
 
 test('logging with a passed in logger', function (t) {
   var logger = {}
+  t.plan(2)
   logger.log = function (level, message) {
     t.equal(level, 'test')
     t.equal(message, 'test')
@@ -475,6 +476,7 @@ test('logging with a passed in logger', function (t) {
 })
 
 test('logging without a passed in logger', function (t) {
+  t.plan(2)
   sinon.stub(service, '_console', function (level, message) {
     t.equal(level, 'test')
     t.equal(message, 'test')
