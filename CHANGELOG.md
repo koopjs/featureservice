@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Don't throw exception when there is no error in the json returned from server
+* Catch non-json responses explicitly
+* Don't use zlib methods unsupported in node 0.10.* in testing
+* Error timestamps are all written in same case
+
 ## [1.2.7] - 2015-09-03
 ### Fixed
 * Correct logic for correcting against poorly instantiated FeatureServices
