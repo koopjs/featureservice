@@ -157,7 +157,7 @@ FeatureService.prototype.layerInfo = function (callback) {
     if (err || !json || json.error) {
       if (!json) json = {error: {}}
       var error = new Error('Request for layer information failed')
-      error.timeStamp = new Date()
+      error.timestamp = new Date()
       error.url = url
       error.code = json.error.code || 500
       error.body = json.error
@@ -195,7 +195,7 @@ FeatureService.prototype.layerIds = function (callback) {
     if (err || !json.objectIds) {
       if (!json) json = {error: {}}
       var error = new Error('Request for object IDs failed')
-      error.timeStamp = new Date()
+      error.timestamp = new Date()
       error.code = json.error.code || 500
       error.url = url
       error.body = err || json.error
@@ -221,7 +221,7 @@ FeatureService.prototype.featureCount = function (callback) {
       // init empty json error so we can handle building the error in one logic stream
       if (!json) json = {error: {}}
       var error = new Error('Request for feature count failed')
-      error.timeStamp = new Date()
+      error.timestamp = new Date()
       error.code = json.error.code || 500
       error.url = countUrl
       error.body = err || json.error
