@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.3.0]
 ### Added
 * Allow a logger to be passed in through options.logger when initializing a new service 
 
@@ -127,6 +127,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.3.0]: https://github.com/koopjs/featureservice/compare/v1.2.7...v1.3.0
 [1.2.7]: https://github.com/koopjs/featureservice/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/koopjs/featureservice/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/koopjs/featureservice/compare/v1.2.4...v1.2.5
