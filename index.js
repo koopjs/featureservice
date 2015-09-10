@@ -582,7 +582,7 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
     task.retry++
   }
 
-  this.log('info', 'Re-requesting page ' + task.req + ' attempt ' +  task.retry)
+  this.log('info', 'Re-requesting page ' + task.req + ' attempt ' + task.retry)
 
   setTimeout(function () {
     this._requestFeatures(task, cb)
