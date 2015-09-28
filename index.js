@@ -496,7 +496,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
             this.error.code = json.error.code || 500
             return self._catchErrors(task, this.error, uri, cb)
           }
-          cb(null, json)
+          cb(null, json, task)
         })
       })
     })
