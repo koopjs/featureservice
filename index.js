@@ -548,7 +548,7 @@ FeatureService.prototype._decode = function (res, data, callback) {
         callback(err, JSON.parse(response))
       })
     } else {
-      response = data.toString().replace(/NaN/g, 'null')
+      response = buffer.toString().replace(/NaN/g, 'null')
       callback(null, JSON.parse(response))
     }
   } catch (e) {

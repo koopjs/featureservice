@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Return the page that was sucessfully completed when getting features
+
+### Fixed
+* No longer failing to parse multi-chunk feature service responses that are not compressed
+
 ## [1.3.1]
 ### Fixed
 * Log retry urls correclty

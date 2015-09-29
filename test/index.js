@@ -248,7 +248,10 @@ test('decoding something that is deflated', function (t) {
 
 test('decoding something that is not compressed', function (t) {
   var uncompressed = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
-  var data = [new Buffer(uncompressed)]
+  var buffer = new Buffer(uncompressed)
+  var buf1 = buffer.slice(0, -1)
+  var buf2 = buffer.slice(-1)
+  var data = [buf1, buf2]
   var res = {headers: {}}
 
   service._decode(res, data, function (err, json) {
