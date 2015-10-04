@@ -39,6 +39,9 @@ An object passed as the second parameter when initializing a service
 
 ### API
 
+#### info(callback)
+Get the information describing the service itself
+
 #### layerIds(callback)
 Get all the ids in a feature service layer
 

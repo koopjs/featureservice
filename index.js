@@ -180,6 +180,35 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
  * Gets the feature service info
  * @param {function} callback - called when the service info comes back
  */
+FeatureService.prototype.info = function (callback) {
+  var url = this.url + '?f=json'
+  this.request(url, function (err, json) {
+    /**
+     * returns error on three conditions:
+     * 1. err is present
+     * 2. missing response json
+     * 3. error in response json
+     */
+    if (err || !json || json.error) {
+      if (!json) json = {error: {}}
+      var error = new Error('Request for service information failed')
+      error.timestamp = new Date()
+      error.url = url
+      error.code = json.error.code || 500
+      error.body = json.error
+
+      return callback(error)
+    }
+
+    json.url = url
+    callback(null, json)
+  })
+}
+
+/**
+ * Gets the feature service layer info
+ * @param {function} callback - called when the layer info comes back
+ */
 FeatureService.prototype.layerInfo = function (callback) {
   var url = this.url + '/' + this.layer + '?f=json'
 

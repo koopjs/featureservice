@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 ### Added
 * Backoff time for failed requests can now be set as an option 
+* `service.info` returns information about the feature or map service
 
 ### Changed
 * Return the page that was sucessfully completed when getting features
