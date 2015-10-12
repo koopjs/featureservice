@@ -36,6 +36,7 @@ var FeatureService = function (url, options) {
 
   this.options = options || {}
   this.options.size = this.options.size || 5000
+  this.options.backoff = this.options.backoff || 1000
   this.options.concurrency = this.options.concurrency || this.url.split('//')[1].match(/^service/) ? 16 : 4
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
@@ -517,7 +518,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
     })
 
     req.end()
-  } catch(e) {
+  } catch (e) {
     this.log('error', e.message)
     this.error = new Error('Unknown failure')
     this.error.code = 500
@@ -533,24 +534,29 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 FeatureService.prototype._decode = function (res, data, callback) {
   var encoding = res.headers['content-encoding']
   if (!data.length > 0) return callback(new Error('Response from the server was empty'))
+  var buffer = Buffer.concat(data)
+  if (encoding === 'gzip') {
+    zlib.gunzip(buffer, function (err, decompressed) {
+      if (err) return callback(err)
+      parse(decompressed, callback)
+    })
+  } else if (encoding === 'deflate') {
+    zlib.inflate(buffer, function (err, decompressed) {
+      if (err) return callback(err)
+      parse(decompressed, callback)
+    })
+  } else {
+    parse(buffer, callback)
+  }
+}
 
+function parse (buffer, callback) {
+  var response
+  var parsed
   try {
-    var buffer = Buffer.concat(data)
-    var response
-    if (encoding === 'gzip') {
-      zlib.gunzip(buffer, function (err, data) {
-        response = data.toString().replace(/NaN/g, 'null')
-        callback(err, JSON.parse(response))
-      })
-    } else if (encoding === 'deflate') {
-      zlib.inflate(buffer, function (err, data) {
-        response = data.toString().replace(/NaN/g, 'null')
-        callback(err, JSON.parse(response))
-      })
-    } else {
-      response = buffer.toString().replace(/NaN/g, 'null')
-      callback(null, JSON.parse(response))
-    }
+    response = buffer.toString()
+    parsed = JSON.parse(response.replace(/NaN/g, null))
+    callback(null, parsed)
   } catch (e) {
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)
@@ -586,7 +592,7 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
 
   setTimeout(function () {
     this._requestFeatures(task, cb)
-  }.bind(this), task.retry * 1000)
+  }.bind(this), task.retry * this.options.backoff)
 }
 
 /**
