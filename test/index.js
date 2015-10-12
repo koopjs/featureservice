@@ -7,6 +7,7 @@ var zlib = require('zlib')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
 
+var serviceFixture = JSON.parse(fs.readFileSync('./test/fixtures/serviceInfo.json'))
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
 var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
 var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
@@ -73,6 +74,18 @@ test('get the metadata for a layer on the service', function (t) {
   service.layerInfo(function (err, metadata) {
     t.equal(err, null)
     t.equal(service.request.calledWith('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1?f=json'), true)
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get the metadata for a service', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, serviceFixture)
+  })
+  service.info(function (err, metadata) {
+    t.equal(err, null)
+    t.equal(service.request.calledWith('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer?f=json'), true)
     service.request.restore()
     t.end()
   })
