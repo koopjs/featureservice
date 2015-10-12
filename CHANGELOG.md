@@ -3,8 +3,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
+### Added
+* Backoff time for failed requests can now be set as an option 
+
 ### Changed
 * Return the page that was sucessfully completed when getting features
+* Response parsing has been moved to its own function and the callback is no longer wrapped in a try/ctch
 
 ### Fixed
 * No longer failing to parse multi-chunk feature service responses that are not compressed
