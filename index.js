@@ -592,7 +592,6 @@ function parse (buffer, callback) {
     if (response.slice(0, 1).match(pattern)) {
       return callback(new Error('Received HTML or plain text when expecting JSON'))
     }
-    this.log('error', e)
     callback(new Error('Failed to parse server response'))
   }
 }

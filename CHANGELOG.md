@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Removed log statement that was causing the process to crash
+
 ## [1.4.0]
 ### Added
 * Backoff time for failed requests can now be set as an option 
