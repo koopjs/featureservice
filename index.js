@@ -585,15 +585,15 @@ function parse (buffer, callback) {
   try {
     response = buffer.toString()
     parsed = JSON.parse(response.replace(/NaN/g, null))
-    callback(null, parsed)
   } catch (e) {
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)
     if (response.slice(0, 1).match(pattern)) {
       return callback(new Error('Received HTML or plain text when expecting JSON'))
     }
-    callback(new Error('Failed to parse server response'))
+    return callback(new Error('Failed to parse server response'))
   }
+  callback(null, parsed)
 }
 
 /* Catches an errors during paging and handles retry logic

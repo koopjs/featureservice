@@ -2,11 +2,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.4.1]
+## Unreleased
+### Changed
+* Removed callback from parse try statement
+
+## [1.4.1] - 2015-10-13
 ### Fixed
 * Removed log statement that was causing the process to crash
 
-## [1.4.0]
+## [1.4.0] - 2015-10-12
 ### Added
 * Backoff time for failed requests can now be set as an option 
 * `service.info` returns information about the feature or map service
