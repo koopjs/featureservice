@@ -526,7 +526,14 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
             this.error.code = json.error.code || 500
             return self._catchErrors(task, this.error, uri, cb)
           }
-          cb(null, json, task)
+          // since we are potentially running with concurrency > 1 in upstream applications
+          // there is a chance that this passed in callback may be triggered multiple times
+          // therefor we need to be defensive here and log an error
+          try {
+            cb(null, json, task)
+          } catch (e) {
+            self.log('error', e)
+          }
         })
       })
     })
