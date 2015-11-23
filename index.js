@@ -616,11 +616,19 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
     task.retry++
   }
 
+  // dial back concurrency if we start hitting errors
+  throttleQueue()
+
   this.log('info', 'Re-requesting page ' + task.req + ' attempt ' + task.retry)
 
   setTimeout(function () {
     this._requestFeatures(task, cb)
   }.bind(this), task.retry * this.options.backoff)
+
+  function throttleQueue () {
+    var concurrency = this.pageQueue.concurrency / 2
+    this.pageQueue.concurrency = concurrency > 1 ? Math.ceil(concurrency) : 1
+  }
 }
 
 /**
