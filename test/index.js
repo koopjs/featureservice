@@ -17,14 +17,14 @@ var securedFixture = JSON.parse(fs.readFileSync('./test/fixtures/secured.json'))
 test('create a service with query strings in the parameters', function (t) {
   var serv = new FeatureService('http://koop.whatever.com/FeatureServer/2?f=json', {layer: '2?f=json'})
   t.equal(serv.layer.toString(), '2')
-  t.equal(serv.url, 'http://koop.whatever.com/FeatureServer')
+  t.equal(serv.server, 'http://koop.whatever.com/FeatureServer')
   t.end()
 })
 
 test('create a service when the url has a trailing slash', function (t) {
   var serv = new FeatureService('http://koop.whatava.com/FeatureServer/0/', {layer: 0})
   t.equal(serv.layer.toString(), '0')
-  t.equal(serv.url, 'http://koop.whatava.com/FeatureServer')
+  t.equal(serv.server, 'http://koop.whatava.com/FeatureServer')
   t.end()
 })
 
@@ -506,4 +506,28 @@ test('logging without a passed in logger', function (t) {
   })
 
   service.log('test', 'test')
+})
+
+test('setting concurrency for a hosted polygon service', function (t) {
+  t.plan(1)
+  var service = new FeatureService('http://services.arcgis.com/mapserver/3', {geomType: 'Polygon'})
+  t.equal(service.options.concurrency, 4)
+})
+
+test('setting concurrency for an on-premise line service', function (t) {
+  t.plan(1)
+  var service = new FeatureService('http://foo.com/mapserver/2', {geomType: 'Line'})
+  t.equal(service.options.concurrency, 1)
+})
+
+test('setting concurrency for a hosted point service', function (t) {
+  t.plan(1)
+  var service = new FeatureService('http://services.arcgis.com/featureserver/3', {geomType: 'Point'})
+  t.equal(service.options.concurrency, 16)
+})
+
+test('setting concurrency for an on-premise point service', function (t) {
+  t.plan(1)
+  var service = new FeatureService('http://foo.com/featureserver/3', {geomType: 'Point'})
+  t.equal(service.options.concurrency, 4)
 })

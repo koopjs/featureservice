@@ -3,6 +3,7 @@ var http = require('http')
 var https = require('https')
 var zlib = require('zlib')
 var urlUtils = require('url')
+var utils = require('./lib/utils.js')
 
 /**
  * Feature Service constructor. Requires a URL.
@@ -19,14 +20,15 @@ var FeatureService = function (url, options) {
     return new FeatureService(url, options)
   }
   var service = parseUrl(url)
-  this.url = service.url
+  this.server = service.server
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
-  this.options.concurrency = this.options.concurrency || this.url.split('//')[1].match(/^service/) ? 16 : 4
+  this.options.concurrency = this.options.concurrency || utils.setConcurrency(this.server, this.options.geomType)
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
   this.layer = service.layer || this.options.layer || 0
+
   this.logger = this.options.logger
 
   // an async for requesting pages of data
@@ -39,7 +41,7 @@ function parseUrl (url) {
   var layer = url.match(/(?:.+\/(?:feature|map)server\/)(\d+)/i)
   return {
     layer: layer && layer[1] ? layer[1] : undefined,
-    url: url.match(/.+\/(feature|map)server/i)[0]
+    server: url.match(/.+\/(feature|map)server/i)[0]
   }
 }
 
@@ -146,7 +148,7 @@ FeatureService.prototype._statsUrl = function (field, stats) {
     })
   })
 
-  return this.url + '/' + this.layer + '/query?f=json&outFields=&outStatistics=' + JSON.stringify(json)
+  return this.server + '/' + this.layer + '/query?f=json&outFields=&outStatistics=' + JSON.stringify(json)
 }
 
 /**
@@ -175,7 +177,7 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
  * @param {function} callback - called when the service info comes back
  */
 FeatureService.prototype.info = function (callback) {
-  var url = this.url + '?f=json'
+  var url = this.server + '?f=json'
   this.request(url, function (err, json) {
     /**
      * returns error on three conditions:
@@ -204,7 +206,7 @@ FeatureService.prototype.info = function (callback) {
  * @param {function} callback - called when the layer info comes back
  */
 FeatureService.prototype.layerInfo = function (callback) {
-  var url = this.url + '/' + this.layer + '?f=json'
+  var url = this.server + '/' + this.layer + '?f=json'
 
   this.request(url, function (err, json) {
     /**
@@ -249,7 +251,7 @@ FeatureService.prototype.getObjectIdField = function (info) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.layerIds = function (callback) {
-  var url = this.url + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json'
+  var url = this.server + '/' + this.layer + '/query?where=1=1&returnIdsOnly=true&f=json'
   this.request(url, function (err, json) {
     if (err || !json.objectIds) {
       if (!json) json = {error: {}}
@@ -272,7 +274,7 @@ FeatureService.prototype.layerIds = function (callback) {
  * @param {object} callback - called when the service info comes back
  */
 FeatureService.prototype.featureCount = function (callback) {
-  var countUrl = this.url + '/' + (this.layer || 0)
+  var countUrl = this.server + '/' + (this.layer || 0)
   countUrl += '/query?where=1=1&returnCountOnly=true&f=json'
 
   this.request(countUrl, function (err, json) {
@@ -394,7 +396,7 @@ FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
 FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
   var resultOffset
-  var url = this.url
+  var url = this.server
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
@@ -426,7 +428,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       var pageMin = pageIds[0]
       var pageMax = pageIds.pop()
       var where = [oidField, ' >= ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
-      var pageUrl = this.url + '/' + (this.layer) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+      var pageUrl = this.server + '/' + (this.layer) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
@@ -451,7 +453,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
   var where
   var objId = this.options.objectIdField
 
-  var url = this.url
+  var url = this.server
   var pages = Math.max((stats.max === size) ? stats.max : Math.ceil((stats.max - stats.min) / size), 1)
 
   for (var i = 0; i < pages; i++) {
