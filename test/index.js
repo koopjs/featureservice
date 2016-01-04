@@ -21,6 +21,13 @@ test('create a service with query strings in the parameters', function (t) {
   t.end()
 })
 
+test('create a service when the url has a trailing slash', function (t) {
+  var serv = new FeatureService('http://koop.whatava.com/FeatureServer/0/', {layer: 0})
+  t.equal(serv.layer.toString(), '0')
+  t.equal(serv.url, 'http://koop.whatava.com/FeatureServer')
+  t.end()
+})
+
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
   t.equal(oid, 'ESRI_OID')
@@ -437,19 +444,19 @@ test('building pages for a version 10.0 server', function (t) {
 })
 
 test('service times out on third try for features', function (t) {
-  var service = new FeatureService('http://www.foobar.com', {timeOut: 5})
-  nock('http://www.foobar.com').get('/').socketDelay(100).reply({}.toString())
+  var service = new FeatureService('http://www.foobar.com/FeatureServer', {timeOut: 5, layer: 0})
+  nock('http://www.foobar.com').get('/FeatureServer/0/query?where=1=1').socketDelay(100).reply({}.toString())
   sinon.stub(service, '_abortPaging', function (err, callback) {
     callback(err)
   })
 
   var task = {
     retry: 3,
-    req: 'http://www.foobar.com/'
+    req: 'http://www.foobar.com/FeatureServer/0/query?where=1=1'
   }
   service._requestFeatures(task, function (err) {
     t.equal(err.code, 504)
-    t.equal(err.url, 'http://www.foobar.com/')
+    t.equal(err.url, 'http://www.foobar.com/FeatureServer/0/query?where=1=1')
     t.end()
   })
 })
@@ -500,4 +507,3 @@ test('logging without a passed in logger', function (t) {
 
   service.log('test', 'test')
 })
-

@@ -18,35 +18,29 @@ var FeatureService = function (url, options) {
   if (!(this instanceof FeatureService)) {
     return new FeatureService(url, options)
   }
-
-  // check the last char on the url
-  // protects us from urls registered with layers already in the url
-  var end = url.split('/').pop().split('?')[0]
-  var layer
-  if (parseInt(end, 10) >= 0) {
-    // protect against layers coming in with query strings
-    layer = end
-    var len = ('' + layer).length
-    // protect against urls with query strings
-    // TODO clean up this confusing logic
-    url = url.split('?')[0]
-    url = url.substring(0, url.length - ((len || 2) + 1))
-  }
-  this.url = url.split('?')[0]
-
+  var service = parseUrl(url)
+  this.url = service.url
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
   this.options.concurrency = this.options.concurrency || this.url.split('//')[1].match(/^service/) ? 16 : 4
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
-  this.layer = layer || this.options.layer || 0
+  this.layer = service.layer || this.options.layer || 0
   this.logger = this.options.logger
 
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
   }.bind(this), this.options.concurrency)
+}
+
+function parseUrl (url) {
+  var layer = url.match(/(?:.+\/(?:feature|map)server\/)(\d+)/i)
+  return {
+    layer: layer && layer[1] ? layer[1] : undefined,
+    url: url.match(/.+\/(feature|map)server/i)[0]
+  }
 }
 
 /**
@@ -584,7 +578,7 @@ function parse (buffer, callback) {
   var parsed
   try {
     response = buffer.toString()
-    parsed = JSON.parse(response.replace(/NaN/g, null))
+    parsed = JSON.parse(response.replace(/NaN/g, ''))
   } catch (e) {
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)

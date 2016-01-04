@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased - 2015-01-04
+### Fixed
+* Urls and Layers are parsed correctly on service init
+
 ## [1.4.2] - 2015-10-13
 ### Changed
 * Removed callback from parse try statement
