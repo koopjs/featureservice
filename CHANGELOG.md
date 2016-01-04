@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased - 2015-01-04
+### Changed
+* Concurrency is throttled when encountering errors in the paging queue
 ### Fixed
 * Urls and Layers are parsed correctly on service init
 
@@ -16,7 +18,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.4.0] - 2015-10-12
 ### Added
-* Backoff time for failed requests can now be set as an option 
+* Backoff time for failed requests can now be set as an option
 * `service.info` returns information about the feature or map service
 
 ### Changed
@@ -32,7 +34,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.3.0]
 ### Added
-* Allow a logger to be passed in through options.logger when initializing a new service 
+* Allow a logger to be passed in through options.logger when initializing a new service
 
 ### Fixed
 * Don't throw exception when there is no error in the json returned from server
@@ -44,7 +46,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 * Correct logic for correcting against poorly instantiated FeatureServices
 
-## [1.2.6] - 2015-09-02 
+## [1.2.6] - 2015-09-02
 ### Fixed
 * Don't set a layer id with a query string
 * Don't set a url with a query string
@@ -177,4 +179,3 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [0.0.3]: https://github.com/koopjs/featureservice/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/koopjs/featureservice/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/koopjs/featureservice/releases/tag/v0.0.1
-
