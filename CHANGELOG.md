@@ -157,7 +157,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
-[1.4.2]: https://github.com/koopjs/featureservice/compare/v1.4.2...v1.4.3
+[1.4.3]: https://github.com/koopjs/featureservice/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/koopjs/featureservice/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/koopjs/featureservice/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/koopjs/featureservice/compare/v1.3.1...v1.4.0
