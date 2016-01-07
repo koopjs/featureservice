@@ -2,11 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.4.4] - 2016-01-07
 ### Fixed
 * Removed bad reference to `this`
 
-## [1.4.3] - 2015-01-04
+## [1.4.3] - 2016-01-04
 ### Changed
 * Concurrency is throttled when encountering errors in the paging queue
 ### Fixed
@@ -161,6 +161,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.4.4]: https://github.com/koopjs/featureservice/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/koopjs/featureservice/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/koopjs/featureservice/compare/v1.4.1...v1.4.2
 [1.4.1]: https://github.com/koopjs/featureservice/compare/v1.4.0...v1.4.1
