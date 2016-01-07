@@ -597,6 +597,7 @@ function parse (buffer, callback) {
  * @param {function} cb - callback passed through to the abort paging function
  */
 FeatureService.prototype._catchErrors = function (task, error, url, cb) {
+  var self = this
   // be defensive in case there was no json payload
   error.body = error.body || {}
   // set the error code from the json payload if the error doesn't have one already
@@ -620,8 +621,8 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
   }.bind(this), task.retry * this.options.backoff)
 
   function throttleQueue () {
-    var concurrency = this.pageQueue.concurrency / 2
-    this.pageQueue.concurrency = concurrency > 1 ? Math.ceil(concurrency) : 1
+    var concurrency = self.pageQueue.concurrency / 2
+    self.pageQueue.concurrency = concurrency > 1 ? Math.ceil(concurrency) : 1
   }
 }
 
