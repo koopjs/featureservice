@@ -511,23 +511,23 @@ test('logging without a passed in logger', function (t) {
 test('setting concurrency for a hosted polygon service', function (t) {
   t.plan(1)
   var service = new FeatureService('http://services.arcgis.com/mapserver/3', {geomType: 'Polygon'})
-  t.equal(service.options.concurrency, 4)
+  t.equal(service.options.maxConcurrency, 4)
 })
 
 test('setting concurrency for an on-premise line service', function (t) {
   t.plan(1)
   var service = new FeatureService('http://foo.com/mapserver/2', {geomType: 'Line'})
-  t.equal(service.options.concurrency, 1)
+  t.equal(service.options.maxConcurrency, 1)
 })
 
 test('setting concurrency for a hosted point service', function (t) {
   t.plan(1)
   var service = new FeatureService('http://services.arcgis.com/featureserver/3', {geomType: 'Point'})
-  t.equal(service.options.concurrency, 16)
+  t.equal(service.options.maxConcurrency, 16)
 })
 
 test('setting concurrency for an on-premise point service', function (t) {
   t.plan(1)
   var service = new FeatureService('http://foo.com/featureserver/3', {geomType: 'Point'})
-  t.equal(service.options.concurrency, 4)
+  t.equal(service.options.maxConcurrency, 4)
 })

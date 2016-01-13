@@ -24,7 +24,7 @@ var FeatureService = function (url, options) {
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
-  this.options.concurrency = this.options.concurrency || utils.setConcurrency(this.server, this.options.geomType)
+  this.options.maxConcurrency = this.options.concurrency || utils.setConcurrency(this.server, this.options.geomType)
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
   this.layer = service.layer || this.options.layer || 0
@@ -34,7 +34,8 @@ var FeatureService = function (url, options) {
   // an async for requesting pages of data
   this.pageQueue = queue(function (task, callback) {
     this._requestFeatures(task, callback)
-  }.bind(this), this.options.concurrency)
+  }.bind(this), this.options.maxConcurrency)
+  this.concurrency = this.options.maxConcurrency
 }
 
 function parseUrl (url) {
@@ -522,6 +523,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
             this.error.code = json.error.code || 500
             return self._catchErrors(task, this.error, uri, cb)
           }
+          self._throttleQueue()
           cb(null, json, task)
         })
       })
@@ -599,7 +601,7 @@ function parse (buffer, callback) {
  * @param {function} cb - callback passed through to the abort paging function
  */
 FeatureService.prototype._catchErrors = function (task, error, url, cb) {
-  var self = this
+  this._throttleQueue(error)
   // be defensive in case there was no json payload
   error.body = error.body || {}
   // set the error code from the json payload if the error doesn't have one already
@@ -613,19 +615,18 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
     task.retry++
   }
 
-  // dial back concurrency if we start hitting errors
-  throttleQueue()
-
   this.log('info', 'Re-requesting page ' + task.req + ' attempt ' + task.retry)
 
   setTimeout(function () {
     this._requestFeatures(task, cb)
   }.bind(this), task.retry * this.options.backoff)
+}
 
-  function throttleQueue () {
-    var concurrency = self.pageQueue.concurrency / 2
-    self.pageQueue.concurrency = concurrency > 1 ? Math.ceil(concurrency) : 1
-  }
+FeatureService.prototype._throttleQueue = function (fail) {
+  if (fail) this.concurrency -= 0.5
+  else this.concurrency += 0.1
+  if (this.concurrency > this.options.maxConcurrency) this.concurrency = this.options.maxConcurrency
+  this.pageQueue.concurrency = this.concurrency >= 1 ? Math.floor(this.concurrency) : 1
 }
 
 /**

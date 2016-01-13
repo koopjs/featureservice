@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Throttle concurrency down on every 2 failed requests
+* Throttle concurrency up on every 10 successful requests
+
 ## [1.4.4] - 2016-01-07
 ### Fixed
 * Removed bad reference to `this`
