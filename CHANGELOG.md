@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.4.5] - 2016-01-13
 ### Changed
 * Throttle concurrency down on every 2 failed requests
 * Throttle concurrency up on every 10 successful requests
@@ -166,6 +166,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.4.5]: https://github.com/koopjs/featureservice/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/koopjs/featureservice/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/koopjs/featureservice/compare/v1.4.2...v1.4.3
 [1.4.2]: https://github.com/koopjs/featureservice/compare/v1.4.1...v1.4.2
