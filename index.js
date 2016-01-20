@@ -239,6 +239,7 @@ FeatureService.prototype.layerInfo = function (callback) {
 */
 FeatureService.prototype.getObjectIdField = function (info) {
   var oid
+  if (!info.fields) return false
   info.fields.forEach(function (field) {
     if (field.type === 'esriFieldTypeOID') {
       oid = field.name
@@ -341,12 +342,12 @@ FeatureService.prototype.pages = function (callback) {
     var layer = meta.layer
     var nPages = Math.ceil(meta.count / size)
 
-    this.options.objectIdField = meta.oid
-
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
     if (canPage) return callback(null, this._offsetPages(nPages, size))
 
+    if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
+    this.options.objectIdField = meta.oid
     // if the service supports statistics, we can request the maximum and minimum id to build pages
     if (layer.supportsStatistics) {
       this._getIdRangeFromStats(meta, function (err, stats) {

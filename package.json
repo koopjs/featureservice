@@ -8,13 +8,13 @@
   },
   "contributors": "Daniel Fenton",
   "dependencies": {
-    "async": "^1.4.0",
-    "request": "^2.60.0"
+    "async": "^1.4.0"
   },
   "devDependencies": {
     "browserify": "^11.0.0",
     "http-browserify": "^1.7.0",
     "https-browserify": "0.0.0",
+    "lodash": "^4.0.0",
     "minifyify": "^7.0.3",
     "nock": "^2.10.0",
     "sinon": "^1.15.4",

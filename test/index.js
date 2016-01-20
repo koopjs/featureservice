@@ -4,6 +4,7 @@ var FeatureService = require('../')
 var nock = require('nock')
 var fs = require('fs')
 var zlib = require('zlib')
+var _ = require('lodash')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
 
@@ -31,6 +32,15 @@ test('create a service when the url has a trailing slash', function (t) {
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
   t.equal(oid, 'ESRI_OID')
+
+  t.end()
+})
+
+test('try to get the objectId when there are no fields', function (t) {
+  var layer = _.cloneDeep(layerInfo)
+  delete layer.fields
+  var oid = service.getObjectIdField(layer)
+  t.equal(oid, false)
 
   t.end()
 })

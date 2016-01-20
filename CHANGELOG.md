@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Guard against missing ObjectID field when trying to page
+* Remove unused dep
+
 ## [1.4.5] - 2016-01-13
 ### Changed
 * Throttle concurrency down on every 2 failed requests
