@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.4.6] - 2016-01-20
 ### Fixed
 * Guard against missing ObjectID field when trying to page
 * Remove unused dep
@@ -171,6 +171,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.4.6]: https://github.com/koopjs/featureservice/compare/v1.4.5...v1.4.6
 [1.4.5]: https://github.com/koopjs/featureservice/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/koopjs/featureservice/compare/v1.4.3...v1.4.4
 [1.4.3]: https://github.com/koopjs/featureservice/compare/v1.4.2...v1.4.3
