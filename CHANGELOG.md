@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Added
+* Service Info, Layer Info, and Metadata are memoized
+* Can call `info`, `layerInfo`, and `metadata` without a callback when info is memoized
+
 ## [1.4.6] - 2016-01-20
 ### Fixed
 * Guard against missing ObjectID field when trying to page

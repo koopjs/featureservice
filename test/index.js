@@ -108,6 +108,39 @@ test('get the metadata for a service', function (t) {
   })
 })
 
+test('get the info for a service once it has already been saved', function (t) {
+  t.plan(3)
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
+  service._info = 'foo'
+  t.equal(service.info(), 'foo')
+  service.info(function (err, info) {
+    t.error(err)
+    t.equal(info, 'foo')
+  })
+})
+
+test('get the metadata for a service once it has already been saved', function (t) {
+  t.plan(3)
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
+  service._metadata = 'foo'
+  t.equal(service.metadata(), 'foo')
+  service.metadata(function (err, info) {
+    t.error(err)
+    t.equal(info, 'foo')
+  })
+})
+
+test('get the metadata for a layer once it has already been saved', function (t) {
+  t.plan(3)
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
+  service._layerInfo = 'foo'
+  t.equal(service.layerInfo(), 'foo')
+  service.layerInfo(function (err, info) {
+    t.error(err)
+    t.equal(info, 'foo')
+  })
+})
+
 test('get all the object ids for a layer on the service', function (t) {
   sinon.stub(service, 'request', function (url, callback) {
     callback(null, idFixture)

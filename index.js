@@ -3,7 +3,7 @@ var http = require('http')
 var https = require('https')
 var zlib = require('zlib')
 var urlUtils = require('url')
-var utils = require('./lib/utils.js')
+var Utils = require('./lib/utils.js')
 
 /**
  * Feature Service constructor. Requires a URL.
@@ -19,12 +19,12 @@ var FeatureService = function (url, options) {
   if (!(this instanceof FeatureService)) {
     return new FeatureService(url, options)
   }
-  var service = parseUrl(url)
+  var service = Utils.parseUrl(url)
   this.server = service.server
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
-  this.options.maxConcurrency = this.options.concurrency || utils.setConcurrency(this.server, this.options.geomType)
+  this.options.maxConcurrency = this.options.concurrency || Utils.setConcurrency(this.server, this.options.geomType)
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
   this.layer = service.layer || this.options.layer || 0
@@ -32,18 +32,8 @@ var FeatureService = function (url, options) {
   this.logger = this.options.logger
 
   // an async for requesting pages of data
-  this.pageQueue = queue(function (task, callback) {
-    this._requestFeatures(task, callback)
-  }.bind(this), this.options.maxConcurrency)
+  this.pageQueue = queue(this._requestFeatures.bind(this), this.options.maxConcurrency)
   this.concurrency = this.options.maxConcurrency
-}
-
-function parseUrl (url) {
-  var layer = url.match(/(?:.+\/(?:feature|map)server\/)(\d+)/i)
-  return {
-    layer: layer && layer[1] ? layer[1] : undefined,
-    server: url.match(/.+\/(feature|map)server/i)[0]
-  }
 }
 
 /**
@@ -178,6 +168,10 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
  * @param {function} callback - called when the service info comes back
  */
 FeatureService.prototype.info = function (callback) {
+  if (this._info) {
+    if (typeof callback === 'undefined') return this._info
+    else return callback(null, this._info)
+  }
   var url = this.server + '?f=json'
   this.request(url, function (err, json) {
     /**
@@ -196,7 +190,7 @@ FeatureService.prototype.info = function (callback) {
 
       return callback(error)
     }
-
+    this._info = json
     json.url = url
     callback(null, json)
   })
@@ -207,6 +201,11 @@ FeatureService.prototype.info = function (callback) {
  * @param {function} callback - called when the layer info comes back
  */
 FeatureService.prototype.layerInfo = function (callback) {
+  // used saved version if available
+  if (this._layerInfo) {
+    if (typeof callback === 'undefined') return this._layerInfo
+    else return callback(null, this._layerInfo)
+  }
   var url = this.server + '/' + this.layer + '?f=json'
 
   this.request(url, function (err, json) {
@@ -301,13 +300,16 @@ FeatureService.prototype.featureCount = function (callback) {
  * @param {function} callback - called with an error or a metadata object
  */
 FeatureService.prototype.metadata = function (callback) {
-  // TODO memoize this
+  if (this._metadata) {
+    if (typeof callback === 'undefined') return this._metadata
+    else return callback(null, this._metadata)
+  }
   this.layerInfo(function (err, layer) {
     if (err) {
       err.message = 'Unable to get layer metadata: ' + err.message
       return callback(err)
     }
-
+    this._layerInfo = layer
     var oid = this.getObjectIdField(layer)
     var size = layer.maxRecordCount
 
@@ -322,6 +324,7 @@ FeatureService.prototype.metadata = function (callback) {
       if (err) return callback(err)
       if (json.count < 1) return callback(new Error('Service returned count of 0'))
       metadata.count = json.count
+      this._metadata = metadata
       callback(null, metadata)
     })
   }.bind(this))
@@ -334,7 +337,6 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
-
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
     // restrict page size to the passed in maximum
     if (size > 5000) size = this.options.maxPageSize
@@ -403,6 +405,7 @@ FeatureService.prototype._offsetPages = function (pages, size) {
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
     var pageUrl = url + '/' + (this.layer) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
+    if (pages === 1) return pageUrl
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
