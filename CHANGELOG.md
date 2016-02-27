@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Service Info, Layer Info, and Metadata are memoized
 * Can call `info`, `layerInfo`, and `metadata` without a callback when info is memoized
 
+### Changed
+* Concurrency is set during paging process
+
 ## [1.4.6] - 2016-01-20
 ### Fixed
 * Guard against missing ObjectID field when trying to page

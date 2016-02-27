@@ -24,7 +24,6 @@ var FeatureService = function (url, options) {
   this.options = options || {}
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
-  this.options.maxConcurrency = this.options.concurrency || Utils.setConcurrency(this.server, this.options.geomType)
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
 
   this.layer = service.layer || this.options.layer || 0
@@ -32,8 +31,7 @@ var FeatureService = function (url, options) {
   this.logger = this.options.logger
 
   // an async for requesting pages of data
-  this.pageQueue = queue(this._requestFeatures.bind(this), this.options.maxConcurrency)
-  this.concurrency = this.options.maxConcurrency
+  this.pageQueue = queue(this._requestFeatures.bind(this), this.options.concurrency || 4)
 }
 
 /**
@@ -336,6 +334,9 @@ FeatureService.prototype.metadata = function (callback) {
  */
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
+    this.concurrency = this.options.concurrency || Utils.setConcurrency(this.server, meta.layer.geometryType)
+    this.maxConcurrency = this.concurrency
+    this.pageQueue.concurrency = this.concurrency
     if (err) return callback(err)
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
     // restrict page size to the passed in maximum
@@ -629,7 +630,7 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
 FeatureService.prototype._throttleQueue = function (fail) {
   if (fail) this.concurrency -= 0.5
   else this.concurrency += 0.1
-  if (this.concurrency > this.options.maxConcurrency) this.concurrency = this.options.maxConcurrency
+  if (this.concurrency > this.maxConcurrency) this.concurrency = this.maxConcurrency
   this.pageQueue.concurrency = this.concurrency >= 1 ? Math.floor(this.concurrency) : 1
 }
 

@@ -1,6 +1,7 @@
 var sinon = require('sinon')
 var test = require('tape')
 var FeatureService = require('../')
+var Utils = require('../lib/utils')
 var nock = require('nock')
 var fs = require('fs')
 var zlib = require('zlib')
@@ -553,24 +554,24 @@ test('logging without a passed in logger', function (t) {
 
 test('setting concurrency for a hosted polygon service', function (t) {
   t.plan(1)
-  var service = new FeatureService('http://services.arcgis.com/mapserver/3', {geomType: 'Polygon'})
-  t.equal(service.options.maxConcurrency, 4)
+  var concurrency = Utils.setConcurrency('http://services.arcgis.com/mapserver/3', 'esriGeometryPolygon')
+  t.equal(concurrency, 4)
 })
 
 test('setting concurrency for an on-premise line service', function (t) {
   t.plan(1)
-  var service = new FeatureService('http://foo.com/mapserver/2', {geomType: 'Line'})
-  t.equal(service.options.maxConcurrency, 1)
+  var concurrency = Utils.setConcurrency('http://foo.com/mapserver/2', 'esriGeometryLine')
+  t.equal(concurrency, 1)
 })
 
 test('setting concurrency for a hosted point service', function (t) {
   t.plan(1)
-  var service = new FeatureService('http://services.arcgis.com/featureserver/3', {geomType: 'Point'})
-  t.equal(service.options.maxConcurrency, 16)
+  var concurrency = Utils.setConcurrency('http://services.arcgis.com/featureserver/3', 'esriGeometryPoint')
+  t.equal(concurrency, 16)
 })
 
 test('setting concurrency for an on-premise point service', function (t) {
   t.plan(1)
-  var service = new FeatureService('http://foo.com/featureserver/3', {geomType: 'Point'})
-  t.equal(service.options.maxConcurrency, 4)
+  var concurrency = Utils.setConcurrency('http://foo.com/featureserver/3', 'esriGeometryPoint')
+  t.equal(concurrency, 4)
 })
