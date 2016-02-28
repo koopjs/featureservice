@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 * Concurrency is set during paging process
+* URL parsing for services is more precise
 
 ## [1.4.6] - 2016-01-20
 ### Fixed
