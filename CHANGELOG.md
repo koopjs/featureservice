@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.5.0] - 2016-02-28
+## Unreleased
 ### Added
 * Service Info, Layer Info, and Metadata are memoized
 * Can call `info`, `layerInfo`, and `metadata` without a callback when info is memoized
@@ -180,7 +180,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
-[1.5.0]: https://github.com/koopjs/featureservice/compare/v1.4.6...v1.5.0
 [1.4.6]: https://github.com/koopjs/featureservice/compare/v1.4.5...v1.4.6
 [1.4.5]: https://github.com/koopjs/featureservice/compare/v1.4.4...v1.4.5
 [1.4.4]: https://github.com/koopjs/featureservice/compare/v1.4.3...v1.4.4
