@@ -166,10 +166,9 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
  * @param {function} callback - called when the service info comes back
  */
 FeatureService.prototype.info = function (callback) {
-  if (this._info) {
-    if (typeof callback === 'undefined') return this._info
-    else return callback(null, this._info)
-  }
+  if (typeof callback === 'undefined') return this._info
+  if (this._info) return callback(null, this._info)
+
   var url = this.server + '?f=json'
   this.request(url, function (err, json) {
     /**
@@ -200,10 +199,9 @@ FeatureService.prototype.info = function (callback) {
  */
 FeatureService.prototype.layerInfo = function (callback) {
   // used saved version if available
-  if (this._layerInfo) {
-    if (typeof callback === 'undefined') return this._layerInfo
-    else return callback(null, this._layerInfo)
-  }
+  if (typeof callback === 'undefined') return this._layerInfo
+  if (this._layerInfo) return callback(null, this._layerInfo)
+
   var url = this.server + '/' + this.layer + '?f=json'
 
   this.request(url, function (err, json) {
@@ -298,10 +296,9 @@ FeatureService.prototype.featureCount = function (callback) {
  * @param {function} callback - called with an error or a metadata object
  */
 FeatureService.prototype.metadata = function (callback) {
-  if (this._metadata) {
-    if (typeof callback === 'undefined') return this._metadata
-    else return callback(null, this._metadata)
-  }
+  if (typeof callback === 'undefined') return this._metadata
+  if (this._metadata) return callback(null, this._metadata)
+
   this.layerInfo(function (err, layer) {
     if (err) {
       err.message = 'Unable to get layer metadata: ' + err.message
@@ -334,10 +331,10 @@ FeatureService.prototype.metadata = function (callback) {
  */
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
+    if (err) return callback(err)
     this.concurrency = this.options.concurrency || Utils.setConcurrency(this.server, meta.layer.geometryType)
     this.maxConcurrency = this.concurrency
     this.pageQueue.concurrency = this.concurrency
-    if (err) return callback(err)
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
     // restrict page size to the passed in maximum
     if (size > 5000) size = this.options.maxPageSize
@@ -405,8 +402,8 @@ FeatureService.prototype._offsetPages = function (pages, size) {
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
-    var pageUrl = url + '/' + (this.layer) + '/query?outSR=4326&f=json&outFields=*&where=1=1'
-    if (pages === 1) return pageUrl
+    var pageUrl = url + '/' + this.layer + '/query?outSR=4326&f=json&outFields=*&where=1=1&geometry=&returnGeometry=true&geometryPrecision='
+    if (pages === 1) return [{req: pageUrl}]
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
@@ -486,6 +483,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
  * @param {function} callback
  */
 FeatureService.prototype._requestFeatures = function (task, cb) {
+  console.log(task, cb)
   var uri = encodeURI(decodeURI(task.req))
   var self = this
   try {
@@ -587,7 +585,7 @@ function parse (buffer, callback) {
   var parsed
   try {
     response = buffer.toString()
-    parsed = JSON.parse(response.replace(/NaN/g, ''))
+    parsed = JSON.parse(response)
   } catch (e) {
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)
@@ -619,6 +617,7 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
   } else {
     task.retry++
   }
+  console.log('WAZZZZZUP', task)
 
   this.log('info', 'Re-requesting page ' + task.req + ' attempt ' + task.retry)
 
