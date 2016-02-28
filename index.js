@@ -401,8 +401,8 @@ FeatureService.prototype._offsetPages = function (pages, size) {
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
-    var pageUrl = url + '/' + this.layer + '/query?outSR=4326&f=json&outFields=*&where=1=1&geometry=&returnGeometry=true&geometryPrecision='
-    if (pages === 1) return [{req: pageUrl}]
+    var pageUrl = url + '/' + this.layer + '/query?outSR=4326&f=json&outFields=*&where=1=1'
+    if (pages === 1) return [{req: pageUrl + '&geometry=&returnGeometry=true&geometryPrecision='}]
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
     pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
