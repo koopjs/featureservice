@@ -27,6 +27,9 @@ var FeatureService = require('featureservice')
 var url = 'http://....../FeatureServer/0'
 
 var service = new FeatureService(url, options)
+service.pages(function (err, pages) {
+/* will give you links to all pages of data in the service*/
+})
 ```
 
 ### Options
