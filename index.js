@@ -168,7 +168,6 @@ FeatureService.prototype.statistics = function (field, stats, callback) {
 FeatureService.prototype.info = function (callback) {
   if (typeof callback === 'undefined') return this._info
   if (this._info) return callback(null, this._info)
-
   var url = this.server + '?f=json'
   this.request(url, function (err, json) {
     /**
@@ -483,7 +482,6 @@ FeatureService.prototype._rangePages = function (stats, size) {
  * @param {function} callback
  */
 FeatureService.prototype._requestFeatures = function (task, cb) {
-  console.log(task, cb)
   var uri = encodeURI(decodeURI(task.req))
   var self = this
   try {
@@ -617,7 +615,6 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
   } else {
     task.retry++
   }
-  console.log('WAZZZZZUP', task)
 
   this.log('info', 'Re-requesting page ' + task.req + ' attempt ' + task.retry)
 
