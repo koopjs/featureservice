@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.1] - 2016-03-02
 ### Changed
 * Don't use resultOffset for services not hosted on ArcGIS Online, it's not reliable
 * Decode streaming server response
@@ -185,6 +185,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.1]: https://github.com/koopjs/featureservice/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/koopjs/featureservice/compare/v1.4.6...v1.5.0
 [1.4.6]: https://github.com/koopjs/featureservice/compare/v1.4.5...v1.4.6
 [1.4.5]: https://github.com/koopjs/featureservice/compare/v1.4.4...v1.4.5
