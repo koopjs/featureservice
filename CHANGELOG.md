@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## Unreleased
 ### Changed
 * Don't use resultOffset for services not hosted on ArcGIS Online, it's not reliable
+* Decode streaming server response
 
 ## [1.5.0] - 2016-02-28
 ### Added

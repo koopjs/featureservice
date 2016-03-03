@@ -2,6 +2,7 @@ var queue = require('async').queue
 var http = require('http')
 var https = require('https')
 var zlib = require('zlib')
+var stream = require('stream')
 var urlUtils = require('url')
 var Utils = require('./lib/utils.js')
 
@@ -92,18 +93,15 @@ FeatureService.prototype.request = function (url, callback) {
 
   // make an http or https request based on the protocol
   var req = ((uri.protocol === 'https:') ? https : http).request(opts, function (response) {
+    var encoding = response.headers['content-encoding']
     var data = []
-    response.on('data', function (chunk) {
-      data.push(chunk)
-    })
-
-    response.on('error', function (err) {
-      callback(err)
-    })
-
-    response.on('end', function () {
-      self._decode(response, data, callback)
-    })
+    response
+    // TODO standaridize these errors
+    .on('error', function (err) { return callback(err) })
+    .pipe(decode(encoding))
+    .on('error', function (err) { return callback(err) })
+    .on('data', function (chunk) { data.push(chunk) })
+    .on('end', function () { parse(data, callback) })
   })
 
   req.setTimeout(self.options.timeOut, function () {
@@ -502,21 +500,19 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
 
      // make an http or https request based on the protocol
     var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
-      var data = []
-
-      response.on('data', function (chunk) {
-        data.push(chunk)
+      var encoding = response.headers['content-encoding']
+      var buffer = []
+      response
+      .on('error', function (err) { self._catchErrors(task, err, uri, cb) })
+      .pipe(decode(encoding))
+      .on('error', function (error) {
+        return self._catchErrors(task, error, uri, cb)
       })
-
-      response.on('error', function (err) {
-        self._catchErrors(task, err, uri, cb)
-      })
-
-      response.on('end', function () {
-        self._decode(response, data, function (err, json) {
-          // the error coming back here is already well formed in _decode
+      .on('data', function (chunk) { buffer.push(chunk) })
+      .on('end', function () {
+        // server responds 200 with error in the payload so we have to inspect
+        parse(buffer, function (err, json) {
           if (err) return self._catchErrors(task, err, uri, cb)
-          // server responds 200 with error in the payload so we have to inspect
           if (!json || json.error) {
             if (!json) json = {error: {}}
             this.error = new Error('Request for a page of features failed')
@@ -526,7 +522,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
             return self._catchErrors(task, this.error, uri, cb)
           }
           self._throttleQueue()
-          cb(null, json, task)
+          cb(null, json)
         })
       })
     })
@@ -555,37 +551,20 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
   }
 }
 
-/* Decodes a response for features
- * @param {object} res - the response received from the GIS Server
- * @param {array} data - an array of chunks received from the server
- * @param {function} callback - calls back with either an error or the decoded feature json
- */
-FeatureService.prototype._decode = function (res, data, callback) {
-  var encoding = res.headers['content-encoding']
-  if (!data.length > 0) return callback(new Error('Response from the server was empty'))
-  var buffer = Buffer.concat(data)
-  if (encoding === 'gzip') {
-    zlib.gunzip(buffer, function (err, decompressed) {
-      if (err) return callback(err)
-      parse(decompressed, callback)
-    })
-  } else if (encoding === 'deflate') {
-    zlib.inflate(buffer, function (err, decompressed) {
-      if (err) return callback(err)
-      parse(decompressed, callback)
-    })
-  } else {
-    parse(buffer, callback)
-  }
+function decode (encoding) {
+  if (encoding === 'gzip') return zlib.createGunzip()
+  else if (encoding === 'deflate') return zlib.createInflate()
+  else return stream.PassThrough()
 }
 
 function parse (buffer, callback) {
   var response
   var parsed
   try {
-    response = buffer.toString()
+    response = Buffer.concat(buffer).toString()
     parsed = JSON.parse(response)
   } catch (e) {
+    console.log(e)
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)
     if (response.slice(0, 1).match(pattern)) {

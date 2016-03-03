@@ -4,8 +4,8 @@ var FeatureService = require('../')
 var Utils = require('../lib/utils')
 var nock = require('nock')
 var fs = require('fs')
-var zlib = require('zlib')
 var _ = require('lodash')
+var zlib = require('zlib')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
 
@@ -279,80 +279,6 @@ test('time out when there is no response', function (t) {
   }, 25)
 })
 
-test('decoding something that is gzipped', function (t) {
-  var json = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
-  zlib.gzip(json, function (err, gzipped) {
-    t.error(err)
-    var data = [gzipped]
-    var res = {headers: {'content-encoding': 'gzip'}}
-    var service = new FeatureService('http://service.com/mapserver/2')
-
-    service._decode(res, data, function (error, json) {
-      t.equal(error, null)
-      t.equal(json.features.length, 2000)
-      t.end()
-    })
-  })
-})
-
-test('decoding something that is deflated', function (t) {
-  var json = JSON.stringify(JSON.parse((fs.readFileSync('./test/fixtures/uncompressed.json'))))
-  zlib.deflate(json, function (err, deflated) {
-    t.error(err)
-    var data = [deflated]
-    var res = {headers: {'content-encoding': 'deflate'}}
-
-    service._decode(res, data, function (error, json) {
-      t.equal(error, null)
-      t.equal(json.features.length, 2000)
-      t.end()
-    })
-  })
-})
-
-test('decoding something that is not compressed', function (t) {
-  var uncompressed = JSON.stringify(JSON.parse(fs.readFileSync('./test/fixtures/uncompressed.json')))
-  var buffer = new Buffer(uncompressed)
-  var buf1 = buffer.slice(0, -1)
-  var buf2 = buffer.slice(-1)
-  var data = [buf1, buf2]
-  var res = {headers: {}}
-
-  service._decode(res, data, function (err, json) {
-    t.error(err)
-    t.equal(json.features.length, 2000)
-    t.end()
-  })
-})
-
-test('decoding an empty response', function (t) {
-  var empty = []
-  var res = {headers: {'content-encoding': 'gzip'}}
-
-  service._decode(res, empty, function (err, json) {
-    t.notEqual(typeof err, 'undefined')
-    t.end()
-  })
-})
-
-test('decoding an unexpected HMTL response', function (t) {
-  var res = {headers: {'content-encoding': ''}}
-  var data = [new Buffer('</html></html>')]
-  service._decode(res, data, function (err) {
-    t.equal(err.message, 'Received HTML or plain text when expecting JSON')
-    t.end()
-  })
-})
-
-test('decoding an unexpected plain text response', function (t) {
-  var res = {headers: {'content-encoding': ''}}
-  var data = [new Buffer('Bad request')]
-  service._decode(res, data, function (err) {
-    t.equal(err.message, 'Received HTML or plain text when expecting JSON')
-    t.end()
-  })
-})
-
 test('should trigger catchErrors with an error when receiving json with an error in the response', function (t) {
   var data = {
     error: {
@@ -382,11 +308,11 @@ test('should trigger catchErrors with an error when receiving json with an error
 
 // feature request integration tests
 test('requesting a page of features', function (t) {
-  var page = fs.readFileSync('./test/fixtures/page.json')
+  var page = fs.createReadStream('./test/fixtures/page.json')
   var fixture = nock('http://servicesqa.arcgis.com')
 
   fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
-  .reply(200, page)
+  .reply(200, function () { return page })
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
   var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
@@ -394,6 +320,75 @@ test('requesting a page of features', function (t) {
   service._requestFeatures(task, function (err, json) {
     t.error(err)
     t.equal(json.features.length, 1000)
+    t.end()
+  })
+})
+
+test('requesting a page of features that is gzipped', function (t) {
+  var page = fs.createReadStream('./test/fixtures/page.json').pipe(zlib.createGzip())
+  var fixture = nock('http://servicesqa.arcgis.com')
+
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  .reply(200, function () { return page }, {'content-encoding': 'gzip'})
+
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+
+  service._requestFeatures(task, function (err, json) {
+    t.error(err)
+    t.equal(json.features.length, 1000)
+    t.end()
+  })
+})
+
+test('requesting a page of features that is deflate encoded', function (t) {
+  var page = fs.createReadStream('./test/fixtures/page.json').pipe(zlib.createDeflate())
+  var fixture = nock('http://servicesqa.arcgis.com')
+
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  .reply(200, function () { return page }, {'content-encoding': 'deflate'})
+
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+
+  service._requestFeatures(task, function (err, json) {
+    t.error(err)
+    t.equal(json.features.length, 1000)
+    t.end()
+  })
+})
+
+test('requesting a page of features and getting an html response', function (t) {
+  var page = new Buffer('</html></html>')
+  var fixture = nock('http://servicesqa.arcgis.com')
+
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  .times(4)
+  .reply(200, function () { return page })
+
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', {backoff: 1})
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+
+  service._requestFeatures(task, function (err, json) {
+    t.ok(err)
+    t.equal(err.message, 'Paging aborted: Received HTML or plain text when expecting JSON')
+    t.end()
+  })
+})
+
+test('requesting a page of features and getting an empty response', function (t) {
+  var fixture = nock('http://servicesqa.arcgis.com')
+
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  .times(4)
+  .reply(200, function () { return undefined })
+
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', {backoff: 1})
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+
+  service._requestFeatures(task, function (err, json) {
+    t.ok(err)
+    t.equal(err.message, 'Paging aborted: Failed to parse server response')
     t.end()
   })
 })
