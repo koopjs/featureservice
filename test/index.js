@@ -554,24 +554,24 @@ test('logging without a passed in logger', function (t) {
 
 test('setting concurrency for a hosted polygon service', function (t) {
   t.plan(1)
-  var concurrency = Utils.setConcurrency('http://services.arcgis.com/mapserver/3', 'esriGeometryPolygon')
+  var concurrency = Utils.setConcurrency(true, 'esriGeometryPolygon')
   t.equal(concurrency, 4)
 })
 
 test('setting concurrency for an on-premise line service', function (t) {
   t.plan(1)
-  var concurrency = Utils.setConcurrency('http://foo.com/mapserver/2', 'esriGeometryLine')
+  var concurrency = Utils.setConcurrency(false, 'esriGeometryLine')
   t.equal(concurrency, 1)
 })
 
 test('setting concurrency for a hosted point service', function (t) {
   t.plan(1)
-  var concurrency = Utils.setConcurrency('http://services.arcgis.com/featureserver/3', 'esriGeometryPoint')
+  var concurrency = Utils.setConcurrency(true, 'esriGeometryPoint')
   t.equal(concurrency, 16)
 })
 
 test('setting concurrency for an on-premise point service', function (t) {
   t.plan(1)
-  var concurrency = Utils.setConcurrency('http://foo.com/featureserver/3', 'esriGeometryPoint')
+  var concurrency = Utils.setConcurrency(false, 'esriGeometryPoint')
   t.equal(concurrency, 4)
 })

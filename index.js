@@ -20,6 +20,7 @@ var FeatureService = function (url, options) {
     return new FeatureService(url, options)
   }
   var service = Utils.parseUrl(url)
+  this.hosted = service.hosted
   this.server = service.server
   this.options = options || {}
   this.options.size = this.options.size || 5000
@@ -331,7 +332,7 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
-    this.concurrency = this.options.concurrency || Utils.setConcurrency(this.server, meta.layer.geometryType)
+    this.concurrency = this.options.concurrency || Utils.setConcurrency(this.hosted, meta.layer.geometryType)
     this.maxConcurrency = this.concurrency
     this.pageQueue.concurrency = this.concurrency
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
