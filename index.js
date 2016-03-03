@@ -344,7 +344,7 @@ FeatureService.prototype.pages = function (callback) {
 
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
-    if (canPage) return callback(null, this._offsetPages(nPages, size))
+    if (canPage && !this.hosted) return callback(null, this._offsetPages(nPages, size))
 
     if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
     this.options.objectIdField = meta.oid

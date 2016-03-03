@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Don't use resultOffset for services not hosted on ArcGIS Online, it's not reliable
+
 ## [1.5.0] - 2016-02-28
 ### Added
 * Service Info, Layer Info, and Metadata are memoized
