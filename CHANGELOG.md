@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.2] - 2016-03-03
 ### Fixed
 * Get the object id field if it's explicitly in info properties
 * resultOffset strategy was reversed
@@ -190,6 +190,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.2]: https://github.com/koopjs/featureservice/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/koopjs/featureservice/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/koopjs/featureservice/compare/v1.4.6...v1.5.0
 [1.4.6]: https://github.com/koopjs/featureservice/compare/v1.4.5...v1.4.6
