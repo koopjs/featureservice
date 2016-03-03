@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Get the object id field if it's explicitly in info properties
+* resultOffset strategy was reversed
+
 ## [1.5.1] - 2016-03-02
 ### Changed
 * Don't use resultOffset for services not hosted on ArcGIS Online, it's not reliable

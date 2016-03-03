@@ -233,11 +233,14 @@ FeatureService.prototype.layerInfo = function (callback) {
 FeatureService.prototype.getObjectIdField = function (info) {
   var oid
   if (!info.fields) return false
-  info.fields.forEach(function (field) {
+  if (info.objectIdField) return info.objectIdField
+  info.fields.some(function (field) {
     if (field.type === 'esriFieldTypeOID') {
       oid = field.name
+      return true
     }
   })
+
   return oid
 }
 
@@ -342,7 +345,7 @@ FeatureService.prototype.pages = function (callback) {
 
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
-    if (canPage && !this.hosted) return callback(null, this._offsetPages(nPages, size))
+    if (canPage && this.hosted) return callback(null, this._offsetPages(nPages, size))
 
     if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
     this.options.objectIdField = meta.oid
@@ -564,7 +567,6 @@ function parse (buffer, callback) {
     response = Buffer.concat(buffer).toString()
     parsed = JSON.parse(response)
   } catch (e) {
-    console.log(e)
     // sometimes we get html or plain strings back
     var pattern = new RegExp(/[^{\[]/)
     if (response.slice(0, 1).match(pattern)) {

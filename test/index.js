@@ -11,6 +11,7 @@ var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-8
 
 var serviceFixture = JSON.parse(fs.readFileSync('./test/fixtures/serviceInfo.json'))
 var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
+var hostedLayerInfo = JSON.parse(fs.readFileSync('./test/fixtures/hostedLayerInfo.json'))
 var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
 var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
 var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
@@ -33,6 +34,13 @@ test('create a service when the url has a trailing slash', function (t) {
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
   t.equal(oid, 'ESRI_OID')
+
+  t.end()
+})
+
+test('get the from a hosted service', function (t) {
+  var oid = service.getObjectIdField(hostedLayerInfo)
+  t.equal(oid, 'FID')
 
   t.end()
 })
@@ -397,15 +405,16 @@ test('requesting a page of features and getting an empty response', function (t)
 test('building pages for a service that supports pagination', function (t) {
   var countPaging = JSON.parse(fs.readFileSync('./test/fixtures/countPaging.json'))
   var layerPaging = JSON.parse(fs.readFileSync('./test/fixtures/layerPaging.json'))
-  var fixture = nock('http://maps.indiana.edu')
+  var fixture = nock('http://services3.arcgis.com')
 
-  fixture.get('/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
   .reply(200, countPaging)
 
-  fixture.get('/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0?f=json')
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0?f=json')
   .reply(200, layerPaging)
 
-  var service = new FeatureService('http://maps.indiana.edu/ArcGIS/rest/services/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
+  var service = new FeatureService('http://services3.arcgis.com/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
+  console.log(service.hosted)
   service.pages(function (err, pages) {
     t.equal(err, null)
     t.equal(pages.length, 156)
