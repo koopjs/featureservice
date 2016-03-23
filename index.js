@@ -24,11 +24,11 @@ var FeatureService = function (url, options) {
   this.hosted = service.hosted
   this.server = service.server
   this.options = options || {}
+  if (this.options.layer) this.options.layer = Utils.sanitizeLayer(this.options.layer)
   this.options.size = this.options.size || 5000
   this.options.backoff = this.options.backoff || 1000
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
-
-  this.layer = service.layer || this.options.layer || 0
+  this.layer = this.options.layer || service.layer || 0
 
   this.logger = this.options.logger
 

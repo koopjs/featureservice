@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* A passed-in layer will always override what's in the url
+
 ## [1.5.2] - 2016-03-03
 ### Fixed
 * Get the object id field if it's explicitly in info properties
