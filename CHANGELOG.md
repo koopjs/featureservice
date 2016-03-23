@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.3] - 2016-03-23
 ### Changed
 * A passed-in layer will always override what's in the url
 
@@ -194,6 +194,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.3]: https://github.com/koopjs/featureservice/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/koopjs/featureservice/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/koopjs/featureservice/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/koopjs/featureservice/compare/v1.4.6...v1.5.0
