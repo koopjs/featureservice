@@ -37,6 +37,12 @@ test('override layer with passed in option', function (t) {
   t.end()
 })
 
+test('override layer with passed in option that is not a string', function (t) {
+  var serv = new FeatureService('http://koop.whateva.com/FeatureServer/1', {layer: 3})
+  t.equal(serv.layer.toString(), 3)
+  t.end()
+})
+
 test('get the objectId', function (t) {
   var oid = service.getObjectIdField(layerInfo)
   t.equal(oid, 'ESRI_OID')
