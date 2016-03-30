@@ -2,9 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.4] - 2016-03-30
 ### Fixed
-* Don't throw expection when passed in layer is of type numeric
+* Don't throw exception when passed in layer is of type numeric
 
 ## [1.5.3] - 2016-03-23
 ### Changed
@@ -198,6 +198,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.4]: https://github.com/koopjs/featureservice/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/koopjs/featureservice/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/koopjs/featureservice/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/koopjs/featureservice/compare/v1.5.0...v1.5.1
