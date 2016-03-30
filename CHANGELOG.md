@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Don't throw expection when passed in layer is of type numeric
+
 ## [1.5.3] - 2016-03-23
 ### Changed
 * A passed-in layer will always override what's in the url
