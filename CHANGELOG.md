@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.5] - 2016-03-31
 ### Fixed
 * Corrected bug in statistics paging strategy
 * Exposed `getObjectIdRange` as public function
@@ -203,6 +203,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.5]: https://github.com/koopjs/featureservice/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/koopjs/featureservice/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/koopjs/featureservice/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/koopjs/featureservice/compare/v1.5.1...v1.5.2
