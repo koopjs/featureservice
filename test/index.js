@@ -16,6 +16,7 @@ var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
 var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
 var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
 var securedFixture = JSON.parse(fs.readFileSync('./test/fixtures/secured.json'))
+var statsFixture = JSON.parse(fs.readFileSync('./test/fixtures/stats.json'))
 
 test('create a service with query strings in the parameters', function (t) {
   var serv = new FeatureService('http://koop.whatever.com/FeatureServer/2?f=json', {layer: '2?f=json'})
@@ -170,6 +171,21 @@ test('get all the object ids for a layer on the service', function (t) {
     t.equal(err, null)
     var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?where=1=1&returnIdsOnly=true&f=json'
     t.equal(service.request.calledWith(expected), true)
+    service.request.restore()
+    t.end()
+  })
+})
+
+test('get the range of object ids for a service', function (t) {
+  sinon.stub(service, 'request', function (url, callback) {
+    callback(null, statsFixture)
+  })
+  service.getObjectIdRange('id', function (err, range) {
+    t.equal(err, null)
+    var expected = 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?f=json&outFields=&outStatistics=[{"statisticType":"min","onStatisticField":"id","outStatisticFieldName":"min_id"},{"statisticType":"max","onStatisticField":"id","outStatisticFieldName":"max_id"}]'
+    t.equal(service.request.calledWith(expected), true)
+    t.equal(range.min, 1)
+    t.equal(range.max, 14)
     service.request.restore()
     t.end()
   })

@@ -351,7 +351,7 @@ FeatureService.prototype.pages = function (callback) {
     this.options.objectIdField = meta.oid
     // if the service supports statistics, we can request the maximum and minimum id to build pages
     if (layer.supportsStatistics) {
-      this._getIdRangeFromStats(meta, function (err, stats) {
+      this.getObjectIdRange(meta.oid, function (err, stats) {
       // if this worked then we can pagination using where clauses
         if (!err) return callback(null, this._rangePages(stats, size))
         // if it failed, try to request all the ids and split them into pages
@@ -376,15 +376,17 @@ FeatureService.prototype.pages = function (callback) {
  * @param {object} meta - layer metadata, holds information needed to request oid stats
  * @param {function} callback - returns with an error or objectID stats
  */
-FeatureService.prototype._getIdRangeFromStats = function (meta, callback) {
-  this.statistics(meta.oid, ['min', 'max'], function (err, stats) {
+FeatureService.prototype.getObjectIdRange = function (oidField, callback) {
+  this.statistics(oidField, ['min', 'max'], function (err, stats) {
     // TODO this is handled elsewhere now so move it
     if (err) return callback(err)
+    var eMsg = 'Response from statistics was invalid'
+    console.log(stats)
+    if (!stats.features || !stats.features[0] || !stats.features[0].attributes) return callback(new Error(eMsg))
     var attrs = stats.features[0].attributes
-    // dmf: what's up with this third strategy?
-    var names = stats && stats.fieldAliases ? Object.keys(stats.fieldAliases) : null
-    var min = attrs.min || attrs.MIN || attrs[names[0]]
-    var max = attrs.max || attrs.MAX || attrs[names[1]]
+    var min = attrs['min_' + oidField] || attrs.min || attrs.MIN
+    var max = attrs['max_' + oidField] || attrs.max || attrs.MAX
+    if (!typeof min === 'number' && typeof max === 'number') return callback(new Error(eMsg))
     callback(null, {min: min, max: max})
   })
 }
