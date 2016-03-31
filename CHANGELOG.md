@@ -3,9 +3,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.5.5] - 2016-03-31
+### Changed
+* Exposed `getObjectIdRange` as public function
+
 ### Fixed
 * Corrected bug in statistics paging strategy
-* Exposed `getObjectIdRange` as public function
 
 ## [1.5.4] - 2016-03-30
 ### Fixed
