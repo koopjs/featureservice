@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Get correct objectID range even when field names are unexpectedly capitalized
+
 ## [1.5.5] - 2016-03-31
 ### Changed
 * Exposed `getObjectIdRange` as public function
@@ -70,8 +74,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * `service.info` returns information about the feature or map service
 
 ### Changed
-* Return the page that was sucessfully completed when getting features
-* Response parsing has been moved to its own function and the callback is no longer wrapped in a try/ctch
+* Return the page that was successfully completed when getting features
+* Response parsing has been moved to its own function and the callback is no longer wrapped in a try/catch
 
 ### Fixed
 * No longer failing to parse multi-chunk feature service responses that are not compressed

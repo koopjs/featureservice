@@ -1,0 +1,1 @@
+{"objectIdFieldName":"id","globalIdFieldName":"","hasZ":false,"hasM":false,"geometryType":"esriGeometryPoint","spatialReference":{"wkid":4326},"fields":[{"name":"min_id","type":"esriFieldTypeInteger","alias":"min_id"},{"name":"max_id","type":"esriFieldTypeInteger","alias":"max_id"}],"features":[{"attributes":{"MIN_ID":1,"MAX_ID":14}}]}

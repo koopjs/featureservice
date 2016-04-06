@@ -377,18 +377,30 @@ FeatureService.prototype.pages = function (callback) {
  * @param {function} callback - returns with an error or objectID stats
  */
 FeatureService.prototype.getObjectIdRange = function (oidField, callback) {
-  this.statistics(oidField, ['min', 'max'], function (err, stats) {
+  this.statistics(oidField, ['min', 'max'], function (err, statResponse) {
     // TODO this is handled elsewhere now so move it
     if (err) return callback(err)
     var eMsg = 'Response from statistics was invalid'
-    console.log(stats)
-    if (!stats.features || !stats.features[0] || !stats.features[0].attributes) return callback(new Error(eMsg))
-    var attrs = stats.features[0].attributes
-    var min = attrs['min_' + oidField] || attrs.min || attrs.MIN
-    var max = attrs['max_' + oidField] || attrs.max || attrs.MAX
-    if (!typeof min === 'number' && typeof max === 'number') return callback(new Error(eMsg))
-    callback(null, {min: min, max: max})
+    var stats
+    try {
+      stats = findMinAndMax(statResponse)
+    } catch (e) {
+      return callback(new Error(eMsg))
+    }
+    if (!stats.min > 0 && !stats.max > 0) return callback(new Error(eMsg))
+    callback(null, stats)
   })
+}
+
+function findMinAndMax (statResponse) {
+  var attributes = statResponse.features[0].attributes
+  var values = Object.keys(attributes).map(function (key) {
+    return attributes[key]
+  })
+  var minMax = {}
+  minMax.min = values[0] < values[1] ? values[0] : values[1]
+  minMax.max = values[1] > values[0] ? values[1] : values[0]
+  return minMax
 }
 
 /**
