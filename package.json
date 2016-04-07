@@ -1,7 +1,7 @@
 {
   "name": "featureservice",
   "description": "Get all features from an Esri Feature Service",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "author": "Chris Helm",
   "bugs": {
     "url": "https://github.com/koopjs/featureservice/issues"

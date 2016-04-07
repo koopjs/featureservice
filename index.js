@@ -500,72 +500,65 @@ FeatureService.prototype._rangePages = function (stats, size) {
 FeatureService.prototype._requestFeatures = function (task, cb) {
   var uri = encodeURI(decodeURI(task.req))
   var self = this
-  try {
-    var url_parts = urlUtils.parse(uri)
+  var url_parts = urlUtils.parse(uri)
 
-    var opts = {
-      method: 'GET',
-      port: (url_parts.protocol === 'https:') ? 443 : url_parts.port || 80,
-      hostname: url_parts.hostname,
-      keepAlive: true,
-      path: url_parts.path,
-      headers: {
-        'User-Agent': 'featureservices-node',
-        'Accept-Encoding': 'gzip, deflate'
-      }
+  var opts = {
+    method: 'GET',
+    port: (url_parts.protocol === 'https:') ? 443 : url_parts.port || 80,
+    hostname: url_parts.hostname,
+    keepAlive: true,
+    path: url_parts.path,
+    headers: {
+      'User-Agent': 'featureservices-node',
+      'Accept-Encoding': 'gzip, deflate'
     }
-
-     // make an http or https request based on the protocol
-    var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
-      var encoding = response.headers['content-encoding']
-      var buffer = []
-      response
-      .on('error', function (err) { self._catchErrors(task, err, uri, cb) })
-      .pipe(decode(encoding))
-      .on('error', function (error) {
-        return self._catchErrors(task, error, uri, cb)
-      })
-      .on('data', function (chunk) { buffer.push(chunk) })
-      .on('end', function () {
-        // server responds 200 with error in the payload so we have to inspect
-        parse(buffer, function (err, json) {
-          if (err) return self._catchErrors(task, err, uri, cb)
-          if (!json || json.error) {
-            if (!json) json = {error: {}}
-            this.error = new Error('Request for a page of features failed')
-            this.error.timestamp = new Date()
-            this.error.body = json.error
-            this.error.code = json.error.code || 500
-            return self._catchErrors(task, this.error, uri, cb)
-          }
-          self._throttleQueue()
-          cb(null, json)
-        })
-      })
-    })
-
-    req.setTimeout(self.options.timeOut, function () {
-      this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
-      this.error.timestamp = new Date()
-      this.error.code = 504
-      req.abort()
-    })
-
-    // we need this error catch to handle ECONNRESET
-    req.on('error', function (err) {
-      // if an error came in from setTimeOut, use that, else use the default error
-      var reported = this.error ? this.error : err
-      reported.timestamp = reported.timestamp || new Date()
-      self._catchErrors(task, reported, uri, cb)
-    })
-
-    req.end()
-  } catch (e) {
-    this.log('error', e.message)
-    this.error = new Error('Unknown failure')
-    this.error.code = 500
-    self._catchErrors(task, this.error, uri, cb)
   }
+
+   // make an http or https request based on the protocol
+  var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
+    var encoding = response.headers['content-encoding']
+    var buffer = []
+    response
+    .on('error', function (err) { self._catchErrors(task, err, uri, cb) })
+    .pipe(decode(encoding))
+    .on('error', function (error) {
+      return self._catchErrors(task, error, uri, cb)
+    })
+    .on('data', function (chunk) { buffer.push(chunk) })
+    .on('end', function () {
+      // server responds 200 with error in the payload so we have to inspect
+      parse(buffer, function (err, json) {
+        if (err) return self._catchErrors(task, err, uri, cb)
+        if (!json || json.error) {
+          if (!json) json = {error: {}}
+          this.error = new Error('Request for a page of features failed')
+          this.error.timestamp = new Date()
+          this.error.body = json.error
+          this.error.code = json.error.code || 500
+          return self._catchErrors(task, this.error, uri, cb)
+        }
+        self._throttleQueue()
+        cb(null, json)
+      })
+    })
+  })
+
+  req.setTimeout(self.options.timeOut, function () {
+    this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
+    this.error.timestamp = new Date()
+    this.error.code = 504
+    req.abort()
+  })
+
+  // we need this error catch to handle ECONNRESET
+  req.on('error', function (err) {
+    // if an error came in from setTimeOut, use that, else use the default error
+    var reported = this.error ? this.error : err
+    reported.timestamp = reported.timestamp || new Date()
+    self._catchErrors(task, reported, uri, cb)
+  })
+
+  req.end()
 }
 
 function decode (encoding) {

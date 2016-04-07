@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.7] - 2016-04-07
+### Changed
+* Remove unneeded try/catch
+
 ## [1.5.6] - 2016-04-06
 ### Fixed
 * Get correct objectID range even when field names are unexpectedly capitalized
@@ -209,7 +213,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
-[1.5.6]: https://github.com/koopjs/featureservice/compare/v1.5.6...v1.5.6
+[1.5.7]: https://github.com/koopjs/featureservice/compare/v1.5.6...v1.5.7
+[1.5.6]: https://github.com/koopjs/featureservice/compare/v1.5.5...v1.5.6
 [1.5.5]: https://github.com/koopjs/featureservice/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/koopjs/featureservice/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/koopjs/featureservice/compare/v1.5.2...v1.5.3
