@@ -1,3 +1,4 @@
+var process = require('process')
 var sinon = require('sinon')
 var test = require('tape')
 var FeatureService = require('../')
@@ -9,15 +10,15 @@ var zlib = require('zlib')
 
 var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID'})
 
-var serviceFixture = JSON.parse(fs.readFileSync('./test/fixtures/serviceInfo.json'))
-var layerInfo = JSON.parse(fs.readFileSync('./test/fixtures/layerInfo.json'))
-var hostedLayerInfo = JSON.parse(fs.readFileSync('./test/fixtures/hostedLayerInfo.json'))
-var layerFixture = JSON.parse(fs.readFileSync('./test/fixtures/layer.json'))
-var idFixture = JSON.parse(fs.readFileSync('./test/fixtures/objectIds.json'))
-var countFixture = JSON.parse(fs.readFileSync('./test/fixtures/count.json'))
-var securedFixture = JSON.parse(fs.readFileSync('./test/fixtures/secured.json'))
-var statsFixture = JSON.parse(fs.readFileSync('./test/fixtures/stats.json'))
-var statsFixtureCaps = JSON.parse(fs.readFileSync('./test/fixtures/statsCaps.json'))
+var serviceFixture = require('./fixtures/serviceInfo.json')
+var layerInfo = require('./fixtures/layerInfo.json')
+var hostedLayerInfo = require('./fixtures/hostedLayerInfo.json')
+var layerFixture = require('./fixtures/layer.json')
+var idFixture = require('./fixtures/objectIds.json')
+var countFixture = require('./fixtures/count.json')
+var securedFixture = require('./fixtures/secured.json')
+var statsFixture = require('./fixtures/stats.json')
+var statsFixtureCaps = require('./fixtures/statsCaps.json')
 
 test('create a service with query strings in the parameters', function (t) {
   var serv = new FeatureService('http://koop.whatever.com/FeatureServer/2?f=json', {layer: '2?f=json'})
@@ -360,7 +361,7 @@ test('should trigger catchErrors with an error when receiving json with an error
 
 // feature request integration tests
 test('requesting a page of features', function (t) {
-  var page = fs.createReadStream('./test/fixtures/page.json')
+  var page = fs.createReadStream(__dirname + '/fixtures/page.json')
   var fixture = nock('http://servicesqa.arcgis.com')
 
   fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
@@ -377,7 +378,7 @@ test('requesting a page of features', function (t) {
 })
 
 test('requesting a page of features that is gzipped', function (t) {
-  var page = fs.createReadStream('./test/fixtures/page.json').pipe(zlib.createGzip())
+  var page = fs.createReadStream(__dirname + '/fixtures/page.json').pipe(zlib.createGzip())
   var fixture = nock('http://servicesqa.arcgis.com')
 
   fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
@@ -394,7 +395,7 @@ test('requesting a page of features that is gzipped', function (t) {
 })
 
 test('requesting a page of features that is deflate encoded', function (t) {
-  var page = fs.createReadStream('./test/fixtures/page.json').pipe(zlib.createDeflate())
+  var page = fs.createReadStream(__dirname + '/fixtures/page.json').pipe(zlib.createDeflate())
   var fixture = nock('http://servicesqa.arcgis.com')
 
   fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
@@ -447,8 +448,8 @@ test('requesting a page of features and getting an empty response', function (t)
 
 // paging integration tests
 test('building pages for a service that supports pagination', function (t) {
-  var countPaging = JSON.parse(fs.readFileSync('./test/fixtures/countPaging.json'))
-  var layerPaging = JSON.parse(fs.readFileSync('./test/fixtures/layerPaging.json'))
+  var countPaging = require('./fixtures/countPaging.json')
+  var layerPaging = require('./fixtures/layerPaging.json')
   var fixture = nock('http://services3.arcgis.com')
 
   fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
@@ -466,9 +467,9 @@ test('building pages for a service that supports pagination', function (t) {
 })
 
 test('building pages from a layer that does not support pagination', function (t) {
-  var layerNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/layerNoPaging.json'))
-  var countNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/countNoPaging.json'))
-  var statsNoPaging = JSON.parse(fs.readFileSync('./test/fixtures/statsNoPaging.json'))
+  var layerNoPaging = require('./fixtures/layerNoPaging.json')
+  var countNoPaging = require('./fixtures/countNoPaging.json')
+  var statsNoPaging = require('./fixtures/statsNoPaging.json')
   var fixture = nock('http://maps2.dcgis.dc.gov')
 
   fixture.get('/dcgis/rest/services/DCGIS_DATA/Transportation_WebMercator/MapServer/50/query?where=1=1&returnCountOnly=true&f=json')
@@ -489,10 +490,10 @@ test('building pages from a layer that does not support pagination', function (t
 })
 
 test('building pages from a layer where statistics fail', function (t) {
-  var layerStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/layerStatsFail.json'))
-  var countStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/countStatsFail.json'))
-  var idsStatsFail = JSON.parse(fs.readFileSync('./test/fixtures/idsStatsFail.json'))
-  var statsFail = JSON.parse(fs.readFileSync('./test/fixtures/statsFail.json'))
+  var layerStatsFail = require('./fixtures/layerStatsFail.json')
+  var countStatsFail = require('./fixtures/countStatsFail.json')
+  var idsStatsFail = require('./fixtures/idsStatsFail.json')
+  var statsFail = require('./fixtures/statsFail.json')
   var fixture = nock('http://maps2.dcgis.dc.gov')
 
   fixture.get('/dcgis/rest/services/FEEDS/CDW_Feeds/MapServer/8/query?where=1=1&returnIdsOnly=true&f=json')
@@ -517,8 +518,8 @@ test('building pages from a layer where statistics fail', function (t) {
 })
 
 test('building pages for a version 10.0 server', function (t) {
-  var layer10 = JSON.parse(fs.readFileSync('./test/fixtures/layer10.0.json'))
-  var ids10 = JSON.parse(fs.readFileSync('./test/fixtures/ids10.0.json'))
+  var layer10 = require('./fixtures/layer10.0.json')
+  var ids10 = require('./fixtures/ids10.0.json')
   var fixture = nock('http://sampleserver3.arcgisonline.com')
 
   fixture.get('/ArcGIS/rest/services/Fire/Sheep/FeatureServer/2?f=json').reply(200, layer10)
