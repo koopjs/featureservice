@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.8] - 2016-10-16
 ### Changed
 * Don't set min max OIDs for a single page request
 
@@ -217,6 +217,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.8]: https://github.com/koopjs/featureservice/compare/v1.5.7...v1.5.8
 [1.5.7]: https://github.com/koopjs/featureservice/compare/v1.5.6...v1.5.7
 [1.5.6]: https://github.com/koopjs/featureservice/compare/v1.5.5...v1.5.6
 [1.5.5]: https://github.com/koopjs/featureservice/compare/v1.5.4...v1.5.5
