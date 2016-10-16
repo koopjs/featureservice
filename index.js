@@ -333,6 +333,7 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
+    if (meta.count < meta.layer.maxRecordCount && meta.count < this.options.maxPageSize) return callback(null, singlePage(this.server, this.layer))
     this.concurrency = this.options.concurrency || Utils.setConcurrency(this.hosted, meta.layer.geometryType)
     this.maxConcurrency = this.concurrency
     this.pageQueue.concurrency = this.concurrency
@@ -369,6 +370,10 @@ FeatureService.prototype.pages = function (callback) {
       }.bind(this))
     }
   }.bind(this))
+}
+
+function singlePage (server, layer) {
+  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&outFields=*&outSR=4326&f=json'].join('')}]
 }
 
 /**

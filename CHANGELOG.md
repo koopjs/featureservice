@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Don't set min max OIDs for a single page request
+
 ## [1.5.7] - 2016-04-07
 ### Changed
 * Remove unneeded try/catch
