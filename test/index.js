@@ -1,4 +1,3 @@
-var process = require('process')
 var sinon = require('sinon')
 var test = require('tape')
 var FeatureService = require('../')
