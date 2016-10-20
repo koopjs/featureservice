@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.9] - 2016-10-20
 ### Changed
 * Use request library instead of hand-rolled http(s) requests
 
@@ -221,6 +221,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.9]: https://github.com/koopjs/featureservice/compare/v1.5.8...v1.5.9
 [1.5.8]: https://github.com/koopjs/featureservice/compare/v1.5.7...v1.5.8
 [1.5.7]: https://github.com/koopjs/featureservice/compare/v1.5.6...v1.5.7
 [1.5.6]: https://github.com/koopjs/featureservice/compare/v1.5.5...v1.5.6
