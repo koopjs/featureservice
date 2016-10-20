@@ -1,9 +1,4 @@
 var queue = require('async').queue
-var http = require('http')
-var https = require('https')
-var zlib = require('zlib')
-var stream = require('stream')
-var urlUtils = require('url')
 var Utils = require('./lib/utils.js')
 
 /**
@@ -31,6 +26,23 @@ var FeatureService = function (url, options) {
   this.layer = this.options.layer || service.layer || 0
 
   this.logger = this.options.logger
+
+  this._request = require('request').defaults({
+    gzip: true,
+    forever: true,
+    timeout: this.options.timeOut,
+    headers: {
+      'user-agent': 'Featureservices-Node'
+    }
+  })
+
+  require('request').defaults({
+    gzip: true,
+    forever: true,
+    headers: {
+      'user-agent': 'Featureservices-Node'
+    }
+  })
 
   // an async for requesting pages of data
   this.pageQueue = queue(this._requestFeatures.bind(this), this.options.concurrency || 4)
@@ -76,46 +88,26 @@ FeatureService.prototype._console = function (level, message) {
  */
  // TODO combine this with _requestFeatures
 FeatureService.prototype.request = function (url, callback) {
-  var uri = urlUtils.parse(encodeURI(decodeURI(url)))
-  var self = this
-
-  var opts = {
-    method: 'GET',
-    port: (uri.protocol === 'https:') ? 443 : uri.port || 80,
-    keepAlive: true,
-    hostname: uri.hostname,
-    path: uri.path,
-    headers: {
-      'User-Agent': 'featureservices-node',
-      'Accept-Encoding': 'gzip, deflate'
+  var json
+  // to ensure things are encoded just right for ArcGIS
+  var encoded = encodeURI(decodeURI(url))
+  this._request(encoded, function (err, res) {
+    if (err) {
+      if (err.message === 'ESOCKETTIMEDOUT') err.code = 504
+      return callback(err)
     }
-  }
-
-  // make an http or https request based on the protocol
-  var req = ((uri.protocol === 'https:') ? https : http).request(opts, function (response) {
-    var encoding = response.headers['content-encoding']
-    var data = []
-    response
-    // TODO standaridize these errors
-    .on('error', function (err) { return callback(err) })
-    .pipe(decode(encoding))
-    .on('error', function (err) { return callback(err) })
-    .on('data', function (chunk) { data.push(chunk) })
-    .on('end', function () { parse(data, callback) })
+    try {
+      json = JSON.parse(res.body)
+    } catch (err) {
+      // sometimes we get html or plain strings back
+      var pattern = new RegExp(/[^{\[]/)
+      if (res.body.slice(0, 1).match(pattern)) {
+        return callback(new Error('Received HTML or plain text when expecting JSON'))
+      }
+      return callback(new Error('Failed to parse server response'))
+    }
+    callback(null, json)
   })
-
-  req.setTimeout(self.options.timeOut, function () {
-    this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
-    this.error.code = 504
-    req.abort()
-  })
-
-  req.on('error', function (error) {
-    this.error = this.error ? this.error : error
-    callback(this.error)
-  })
-
-  req.end()
 }
 
 /**
@@ -503,90 +495,21 @@ FeatureService.prototype._rangePages = function (stats, size) {
  * @param {function} callback
  */
 FeatureService.prototype._requestFeatures = function (task, cb) {
-  var uri = encodeURI(decodeURI(task.req))
   var self = this
-  var url_parts = urlUtils.parse(uri)
 
-  var opts = {
-    method: 'GET',
-    port: (url_parts.protocol === 'https:') ? 443 : url_parts.port || 80,
-    hostname: url_parts.hostname,
-    keepAlive: true,
-    path: url_parts.path,
-    headers: {
-      'User-Agent': 'featureservices-node',
-      'Accept-Encoding': 'gzip, deflate'
+  this.request(task.req, function (err, json) {
+    if (err) return self._catchErrors(task, err, task.req, cb)
+    if (!json || json.error) {
+      if (!json) json = {error: {}}
+      var error = new Error('Request for a page of features failed')
+      error.timestamp = new Date()
+      error.body = json.error
+      error.code = json.error.code || 500
+      return self._catchErrors(task, error, task.req, cb)
     }
-  }
-
-   // make an http or https request based on the protocol
-  var req = ((url_parts.protocol === 'https:') ? https : http).request(opts, function (response) {
-    var encoding = response.headers['content-encoding']
-    var buffer = []
-    response
-    .on('error', function (err) { self._catchErrors(task, err, uri, cb) })
-    .pipe(decode(encoding))
-    .on('error', function (error) {
-      return self._catchErrors(task, error, uri, cb)
-    })
-    .on('data', function (chunk) { buffer.push(chunk) })
-    .on('end', function () {
-      // server responds 200 with error in the payload so we have to inspect
-      parse(buffer, function (err, json) {
-        if (err) return self._catchErrors(task, err, uri, cb)
-        if (!json || json.error) {
-          if (!json) json = {error: {}}
-          this.error = new Error('Request for a page of features failed')
-          this.error.timestamp = new Date()
-          this.error.body = json.error
-          this.error.code = json.error.code || 500
-          return self._catchErrors(task, this.error, uri, cb)
-        }
-        self._throttleQueue()
-        cb(null, json)
-      })
-    })
+    self._throttleQueue()
+    cb(null, json)
   })
-
-  req.setTimeout(self.options.timeOut, function () {
-    this.error = new Error('The request timed out after ' + self.options.timeOut / 1000 + ' seconds.')
-    this.error.timestamp = new Date()
-    this.error.code = 504
-    req.abort()
-  })
-
-  // we need this error catch to handle ECONNRESET
-  req.on('error', function (err) {
-    // if an error came in from setTimeOut, use that, else use the default error
-    var reported = this.error ? this.error : err
-    reported.timestamp = reported.timestamp || new Date()
-    self._catchErrors(task, reported, uri, cb)
-  })
-
-  req.end()
-}
-
-function decode (encoding) {
-  if (encoding === 'gzip') return zlib.createGunzip()
-  else if (encoding === 'deflate') return zlib.createInflate()
-  else return stream.PassThrough()
-}
-
-function parse (buffer, callback) {
-  var response
-  var parsed
-  try {
-    response = Buffer.concat(buffer).toString()
-    parsed = JSON.parse(response)
-  } catch (e) {
-    // sometimes we get html or plain strings back
-    var pattern = new RegExp(/[^{\[]/)
-    if (response.slice(0, 1).match(pattern)) {
-      return callback(new Error('Received HTML or plain text when expecting JSON'))
-    }
-    return callback(new Error('Failed to parse server response'))
-  }
-  callback(null, parsed)
 }
 
 /* Catches an errors during paging and handles retry logic

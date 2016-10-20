@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Use request library instead of hand-rolled http(s) requests
+
 ## [1.5.8] - 2016-10-16
 ### Changed
 * Don't set min max OIDs for a single page request
