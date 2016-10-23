@@ -29,16 +29,7 @@ var FeatureService = function (url, options) {
 
   this._request = require('request').defaults({
     gzip: true,
-    forever: true,
     timeout: this.options.timeOut,
-    headers: {
-      'user-agent': 'Featureservices-Node'
-    }
-  })
-
-  require('request').defaults({
-    gzip: true,
-    forever: true,
     headers: {
       'user-agent': 'Featureservices-Node'
     }
@@ -91,7 +82,11 @@ FeatureService.prototype.request = function (url, callback) {
   var json
   // to ensure things are encoded just right for ArcGIS
   var encoded = encodeURI(decodeURI(url))
-  this._request(encoded, function (err, res) {
+  var options = {
+    method: 'GET',
+    url: encoded
+  }
+  this._request(options, function (err, res) {
     if (err) {
       if (err.message === 'ESOCKETTIMEDOUT') err.code = 504
       return callback(err)

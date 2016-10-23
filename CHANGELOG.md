@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Don't use forever agent on http requests
+
 ## [1.5.9] - 2016-10-20
 ### Changed
 * Use request library instead of hand-rolled http(s) requests
