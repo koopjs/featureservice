@@ -322,13 +322,13 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
-    if (meta.count < meta.layer.maxRecordCount && meta.count < this.options.maxPageSize) return callback(null, singlePage(this.server, this.layer))
+    if (meta.count < meta.layer.maxRecordCount && meta.count < this.options.size) return callback(null, singlePage(this.server, this.layer))
     this.concurrency = this.options.concurrency || Utils.setConcurrency(this.hosted, meta.layer.geometryType)
     this.maxConcurrency = this.concurrency
     this.pageQueue.concurrency = this.concurrency
     var size = Math.min(parseInt(meta.size, 10), 1000) || 1000
     // restrict page size to the passed in maximum
-    if (size > 5000) size = this.options.maxPageSize
+    if (size > 5000) size = this.options.size
 
     var layer = meta.layer
     var nPages = Math.ceil(meta.count / size)

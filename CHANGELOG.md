@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Use options.size to restrict max
+
 ## [1.5.10] - 2016-10-23
 ### Changed
 * Don't use forever agent on http requests
