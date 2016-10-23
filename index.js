@@ -29,6 +29,8 @@ var FeatureService = function (url, options) {
 
   this._request = require('request').defaults({
     gzip: true,
+    // had to remove forever agent due to https://github.com/nodejs/node/issues/3595
+    // this is fixed in node 4
     timeout: this.options.timeOut,
     headers: {
       'user-agent': 'Featureservices-Node'
