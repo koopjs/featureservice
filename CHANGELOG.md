@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.11] - 2016-10-23
 ### Fixed
 * Use options.size to restrict max
 
@@ -229,6 +229,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.11]: https://github.com/koopjs/featureservice/compare/v1.5.10...v1.5.11
 [1.5.10]: https://github.com/koopjs/featureservice/compare/v1.5.9...v1.5.10
 [1.5.9]: https://github.com/koopjs/featureservice/compare/v1.5.8...v1.5.9
 [1.5.8]: https://github.com/koopjs/featureservice/compare/v1.5.7...v1.5.8
