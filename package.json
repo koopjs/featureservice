@@ -9,7 +9,7 @@
   "contributors": "Daniel Fenton",
   "dependencies": {
     "async": "^1.4.0",
-    "request": "^2.75.0"
+    "xhr-request": "^1.0.1"
   },
   "devDependencies": {
     "browserify": "^11.0.0",
