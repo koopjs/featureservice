@@ -77,23 +77,23 @@ FeatureService.prototype.request = function (url, callback) {
   // to ensure things are encoded just right for ArcGIS
   var encoded = encodeURI(decodeURI(url))
   var options = {
-    json: true,
-    timeout: this.options.timeout,
+    timeout: this.options.timeOut,
     headers: {
       'user-agent': 'Featureservices-Node'
     }
+
   }
-  this._request(encoded, options, function (err, res) {
+  this._request(encoded, options, function (err, data, res) {
     if (err) {
-      if (err.message === 'ESOCKETTIMEDOUT') err.code = 504
+      if (err.code === 'ESOCKETTIMEDOUT') err.code = 504
       return callback(err)
     }
     try {
-      json = res.body
+      json = JSON.parse(data)
     } catch (err) {
       // sometimes we get html or plain strings back
       var pattern = new RegExp(/[^{\[]/)
-      if (res.body && res.body.slice(0, 1).match(pattern)) {
+      if (data.slice(0, 1).match(pattern)) {
         return callback(new Error('Received HTML or plain text when expecting JSON'))
       }
       return callback(new Error('Failed to parse server response'))
@@ -490,7 +490,6 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
   var self = this
 
   this.request(task.req, function (err, json) {
-    debugger
     if (err) return self._catchErrors(task, err, task.req, cb)
     if (!json || json.error) {
       if (!json) json = {error: {}}
@@ -512,7 +511,6 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
  * @param {function} cb - callback passed through to the abort paging function
  */
 FeatureService.prototype._catchErrors = function (task, error, url, cb) {
-  debugger
   this._throttleQueue(error)
   // be defensive in case there was no json payload
   error.body = error.body || {}
