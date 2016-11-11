@@ -27,15 +27,7 @@ var FeatureService = function (url, options) {
 
   this.logger = this.options.logger
 
-  this._request = require('request').defaults({
-    gzip: true,
-    // had to remove forever agent due to https://github.com/nodejs/node/issues/3595
-    // this is fixed in node 4
-    timeout: this.options.timeOut,
-    headers: {
-      'user-agent': 'Featureservices-Node'
-    }
-  })
+  this._request = require('xhr-request')
 
   // an async for requesting pages of data
   this.pageQueue = queue(this._requestFeatures.bind(this), this.options.concurrency || 4)
@@ -85,20 +77,23 @@ FeatureService.prototype.request = function (url, callback) {
   // to ensure things are encoded just right for ArcGIS
   var encoded = encodeURI(decodeURI(url))
   var options = {
-    method: 'GET',
-    url: encoded
+    json: true,
+    timeout: this.options.timeout,
+    headers: {
+      'user-agent': 'Featureservices-Node'
+    }
   }
-  this._request(options, function (err, res) {
+  this._request(encoded, options, function (err, res) {
     if (err) {
       if (err.message === 'ESOCKETTIMEDOUT') err.code = 504
       return callback(err)
     }
     try {
-      json = JSON.parse(res.body)
+      json = res.body
     } catch (err) {
       // sometimes we get html or plain strings back
       var pattern = new RegExp(/[^{\[]/)
-      if (res.body.slice(0, 1).match(pattern)) {
+      if (res.body && res.body.slice(0, 1).match(pattern)) {
         return callback(new Error('Received HTML or plain text when expecting JSON'))
       }
       return callback(new Error('Failed to parse server response'))
@@ -495,6 +490,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
   var self = this
 
   this.request(task.req, function (err, json) {
+    debugger
     if (err) return self._catchErrors(task, err, task.req, cb)
     if (!json || json.error) {
       if (!json) json = {error: {}}
@@ -516,6 +512,7 @@ FeatureService.prototype._requestFeatures = function (task, cb) {
  * @param {function} cb - callback passed through to the abort paging function
  */
 FeatureService.prototype._catchErrors = function (task, error, url, cb) {
+  debugger
   this._throttleQueue(error)
   // be defensive in case there was no json payload
   error.body = error.body || {}
