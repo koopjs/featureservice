@@ -19,7 +19,7 @@
     "minifyify": "^7.0.3",
     "nock": "^2.10.0",
     "sinon": "^1.15.4",
-    "standard": "^5.0.0",
+    "standard": "^9.0.1",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.1",
     "zlib-browserify": "0.0.3"

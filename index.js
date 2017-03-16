@@ -92,7 +92,7 @@ FeatureService.prototype.request = function (url, callback) {
       json = JSON.parse(data)
     } catch (err) {
       // sometimes we get html or plain strings back
-      var pattern = new RegExp(/[^{\[]/)
+      var pattern = new RegExp(/[^{\[]/) // eslint-disable-line
       if (data.slice(0, 1).match(pattern)) {
         return callback(new Error('Received HTML or plain text when expecting JSON'))
       }
