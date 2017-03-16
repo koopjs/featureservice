@@ -1,5 +1,7 @@
 # featureservice
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/FeatureServer/featureservice.svg)](https://greenkeeper.io/)
+
 > Get all features from an Esri Feature Service
 
 [![npm][npm-image]][npm-url]

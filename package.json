@@ -8,17 +8,17 @@
   },
   "contributors": "Daniel Fenton",
   "dependencies": {
-    "async": "^1.4.0",
+    "async": "^2.1.5",
     "xhr-request": "^1.0.1"
   },
   "devDependencies": {
-    "browserify": "^11.0.0",
+    "browserify": "^14.1.0",
     "http-browserify": "^1.7.0",
-    "https-browserify": "0.0.0",
+    "https-browserify": "0.0.1",
     "lodash": "^4.0.0",
     "minifyify": "^7.0.3",
-    "nock": "^2.10.0",
-    "sinon": "^1.15.4",
+    "nock": "^9.0.9",
+    "sinon": "^2.0.0",
     "standard": "^9.0.1",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.1",
