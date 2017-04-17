@@ -291,7 +291,7 @@ FeatureService.prototype.metadata = function (callback) {
     }
     this._layerInfo = layer
     var oid = this.getObjectIdField(layer)
-    var size = layer.maxRecordCount
+    var size = (layer.maxRecordCount < 2001) ? layer.maxRecordCount : 2000
 
     // TODO flatten this
     var metadata = {layer: layer, oid: oid, size: size}
