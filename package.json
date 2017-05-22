@@ -8,7 +8,7 @@
   },
   "contributors": "Daniel Fenton",
   "dependencies": {
-    "async": "^2.1.5",
+    "async": "^2.4.1",
     "xhr-request": "^1.0.1"
   },
   "devDependencies": {
