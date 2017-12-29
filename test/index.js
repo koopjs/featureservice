@@ -72,8 +72,8 @@ test('build offset pages', function (t) {
   var pages
   var stats = {min: 0, max: 2000}
   pages = service._rangePages(stats, stats.max / 2)
-  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=0+AND+OBJECTID<=999&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=')
-  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=1000+AND+OBJECTID<=2000&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=')
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=0+AND+OBJECTID<=999&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID>=1000+AND+OBJECTID<=2000&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   t.equal(pages.length, 2)
   pages = service._rangePages(stats, stats.max / 4)
   t.equal(pages.length, 4)
@@ -85,17 +85,17 @@ test('build id based pages', function (t) {
   var maxCount = 2
   var pages = service._idPages(ids, maxCount)
   t.equal(pages.length, 3)
-  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 0 AND OBJECTID<=1&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
-  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 2 AND OBJECTID<=3&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
-  t.equal(pages[2].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 4 AND OBJECTID<=5&f=json&outFields=*&geometry=&returnGeometry=true&geometryPrecision=10')
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 0 AND OBJECTID<=1&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 2 AND OBJECTID<=3&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
+  t.equal(pages[2].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&where=OBJECTID >= 4 AND OBJECTID<=5&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
   t.end()
 })
 
 test('build result offset pages', function (t) {
   var maxCount = 100
   var pages = service._offsetPages(4, maxCount)
-  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&geometryPrecision=')
-  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=100&resultRecordCount=100&geometry=&returnGeometry=true&geometryPrecision=')
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=100&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   t.equal(pages.length, 4)
 
   t.end()
@@ -363,11 +363,11 @@ test('requesting a page of features', function (t) {
   var page = fs.createReadStream(__dirname + '/fixtures/page.json')
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   .reply(200, function () { return page })
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
-  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
     t.error(err)
@@ -380,11 +380,11 @@ test('requesting a page of features that is gzipped', function (t) {
   var page = fs.createReadStream(__dirname + '/fixtures/page.json').pipe(zlib.createGzip())
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   .reply(200, function () { return page }, {'content-encoding': 'gzip'})
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
-  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
     t.error(err)
@@ -397,11 +397,11 @@ test('requesting a page of features that is deflate encoded', function (t) {
   var page = fs.createReadStream(__dirname + '/fixtures/page.json').pipe(zlib.createDeflate())
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   .reply(200, function () { return page }, {'content-encoding': 'deflate'})
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0')
-  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
     t.error(err)
@@ -414,12 +414,12 @@ test('requesting a page of features and getting an html response', function (t) 
   var page = new Buffer('</html></html>')
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   .times(4)
   .reply(200, function () { return page })
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', {backoff: 1})
-  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
     t.ok(err)
@@ -431,12 +431,12 @@ test('requesting a page of features and getting an html response', function (t) 
 test('requesting a page of features and getting an empty response', function (t) {
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   .times(4)
   .reply(200, function () { return undefined })
 
   var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', {backoff: 1})
-  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&geometryPrecision='}
+  var task = {req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}
 
   service._requestFeatures(task, function (err, json) {
     t.ok(err)
