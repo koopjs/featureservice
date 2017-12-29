@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Z value is requested when paging
+
 ## [1.5.11] - 2016-10-23
 ### Fixed
 * Use options.size to restrict max

@@ -357,7 +357,7 @@ FeatureService.prototype.pages = function (callback) {
 }
 
 function singlePage (server, layer) {
-  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&outFields=*&outSR=4326&f=json'].join('')}]
+  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&returnZ=true&outFields=*&outSR=4326&f=json'].join('')}]
 }
 
 /**
@@ -407,10 +407,10 @@ FeatureService.prototype._offsetPages = function (pages, size) {
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
     var pageUrl = url + '/' + this.layer + '/query?outSR=4326&f=json&outFields=*&where=1=1'
-    if (pages === 1) return [{req: pageUrl + '&geometry=&returnGeometry=true&geometryPrecision='}]
+    if (pages === 1) return [{req: pageUrl + '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}]
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
-    pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
+    pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
 
@@ -436,7 +436,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       var pageMax = pageIds.pop()
       var where = [oidField, ' >= ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
       var pageUrl = this.server + '/' + (this.layer) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
-      pageUrl += '&geometry=&returnGeometry=true&geometryPrecision=10'
+      pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
   }
@@ -474,7 +474,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
     pageMin = stats.min + (size * i)
     where = [objId, '>=', pageMin, '+AND+', objId, '<=', pageMax].join('')
     pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
-    pageUrl += '&geometry=&returnGeometry=true&geometryPrecision='
+    pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
 
