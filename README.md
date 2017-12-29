@@ -8,9 +8,9 @@
 
 [npm-image]: https://img.shields.io/npm/v/featureservice.svg?style=flat-square
 [npm-url]: https://www.npmjs.com/package/featureservice
-[travis-image]: https://img.shields.io/travis/FeatureServer/featureservice.svg?style=flat-square
-[travis-url]: https://travis-ci.org/FeatureServer/featureservice
-[greenkeeper-image]: https://badges.greenkeeper.io/FeatureServer/featureservice.svg
+[travis-image]: https://img.shields.io/travis/koopjs/featureservice.svg?style=flat-square
+[travis-url]: https://travis-ci.org/koopjs/featureservice
+[greenkeeper-image]: https://badges.greenkeeper.io/koopjs/featureservice.svg
 [greenkeeper-url]: https://greenkeeper.io/
 
 A little module that extracts every feature from an Esri Feature Service. The real power in this module is that it's designed to page over a service and extract every single feature no matter what ArcGIS Server version the data is hosted on.

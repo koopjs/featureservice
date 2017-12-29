@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.12] - 2017-12-29
 ### Changed
 * Z value is requested when paging
 
@@ -233,6 +233,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.12]: https://github.com/koopjs/featureservice/compare/v1.5.11...v1.5.12
 [1.5.11]: https://github.com/koopjs/featureservice/compare/v1.5.10...v1.5.11
 [1.5.10]: https://github.com/koopjs/featureservice/compare/v1.5.9...v1.5.10
 [1.5.9]: https://github.com/koopjs/featureservice/compare/v1.5.8...v1.5.9
