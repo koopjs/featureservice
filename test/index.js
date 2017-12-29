@@ -108,7 +108,7 @@ test('creates an out statistics url', function (t) {
 })
 
 test('get the metadata for a layer on the service', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, layerFixture)
   })
   service.layerInfo(function (err, metadata) {
@@ -120,7 +120,7 @@ test('get the metadata for a layer on the service', function (t) {
 })
 
 test('get the metadata for a service', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, serviceFixture)
   })
   service.info(function (err, metadata) {
@@ -165,7 +165,7 @@ test('get the metadata for a layer once it has already been saved', function (t)
 })
 
 test('get all the object ids for a layer on the service', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, idFixture)
   })
   service.layerIds(function (err, metadata) {
@@ -178,7 +178,7 @@ test('get all the object ids for a layer on the service', function (t) {
 })
 
 test('get the range of object ids for a service', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, statsFixture)
   })
   service.getObjectIdRange('id', function (err, range) {
@@ -193,7 +193,7 @@ test('get the range of object ids for a service', function (t) {
 })
 
 test('get the range of object ids for a service when the attribute names are unexpectedly capitalized', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, statsFixtureCaps)
   })
   service.getObjectIdRange('id', function (err, range) {
@@ -208,7 +208,7 @@ test('get the range of object ids for a service when the attribute names are une
 })
 
 test('get the feature count for a layer on the service', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, countFixture)
   })
   service.featureCount(function (err, metadata) {
@@ -221,7 +221,7 @@ test('get the feature count for a layer on the service', function (t) {
 })
 
 test('get a json error when trying to get a feature count', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, securedFixture)
   })
   service.featureCount(function (err, count) {
@@ -234,7 +234,7 @@ test('get a json error when trying to get a feature count', function (t) {
 })
 
 test('get an error with no response body when trying to get a feature count', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(new Error(), null)
   })
   service.featureCount(function (err, count) {
@@ -245,7 +245,7 @@ test('get an error with no response body when trying to get a feature count', fu
 })
 
 test('get a json error when trying to get layer ids', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, securedFixture)
   })
   service.layerIds(function (err, count) {
@@ -258,7 +258,7 @@ test('get a json error when trying to get layer ids', function (t) {
 })
 
 test('get an error with no response body when trying to get layer ids', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(new Error(), null)
   })
   service.layerIds(function (err, count) {
@@ -269,7 +269,7 @@ test('get an error with no response body when trying to get layer ids', function
 })
 
 test('get a json error when trying to get layer info', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, securedFixture)
   })
   service.layerInfo(function (err, count) {
@@ -282,7 +282,7 @@ test('get a json error when trying to get layer info', function (t) {
 })
 
 test('get an error with no response body when trying to get layer info', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(new Error(), null)
   })
   service.layerInfo(function (err, count) {
@@ -293,7 +293,7 @@ test('get an error with no response body when trying to get layer info', functio
 })
 
 test('get a json error when trying to get statistics', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(null, securedFixture)
   })
   service.statistics('foo', ['max'], function (err, count) {
@@ -306,7 +306,7 @@ test('get a json error when trying to get statistics', function (t) {
 })
 
 test('get an error with no response body when trying to get statistics', function (t) {
-  sinon.stub(service, 'request', function (url, callback) {
+  sinon.stub(service, 'request').callsFake(function (url, callback) {
     callback(new Error(), null)
   })
   service.statistics('foo', [], function (err, count) {
@@ -343,7 +343,7 @@ test('should trigger catchErrors with an error when receiving json with an error
   var fixture = nock('http://www.error.com')
   fixture.get('/').reply(200, JSON.stringify(data))
 
-  sinon.stub(service, '_catchErrors', function (task, err, url, callback) {
+  sinon.stub(service, '_catchErrors').callsFake(function (task, err, url, callback) {
     callback(err)
   })
 
@@ -537,7 +537,7 @@ test('building pages for a version 10.0 server', function (t) {
 test('service times out on third try for features', function (t) {
   var service = new FeatureService('http://www.foobar.com/FeatureServer', {timeOut: 5, layer: 0})
   nock('http://www.foobar.com').get('/FeatureServer/0/query?where=1=1').socketDelay(100).reply({}.toString())
-  sinon.stub(service, '_abortPaging', function (err, callback) {
+  sinon.stub(service, '_abortPaging').callsFake(function (err, callback) {
     callback(err)
   })
 
@@ -564,7 +564,7 @@ test('catching errors with a json payload', function (t) {
   error.body = body
   error.url = 'http://url.com'
 
-  sinon.stub(service, '_abortPaging', function (error, cb) {
+  sinon.stub(service, '_abortPaging').callsFake(function (error, cb) {
     cb(error)
   })
 
@@ -590,7 +590,7 @@ test('logging with a passed in logger', function (t) {
 
 test('logging without a passed in logger', function (t) {
   t.plan(2)
-  sinon.stub(service, '_console', function (level, message) {
+  sinon.stub(service, '_console').callsFake(function (level, message) {
     t.equal(level, 'test')
     t.equal(message, 'test')
     service._console.restore()
