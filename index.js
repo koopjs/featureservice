@@ -535,7 +535,9 @@ FeatureService.prototype._catchErrors = function (task, error, url, cb) {
 FeatureService.prototype._throttleQueue = function (fail) {
   if (fail) this.concurrency -= 0.5
   else this.concurrency += 0.1
+
   if (this.concurrency > this.maxConcurrency) this.concurrency = this.maxConcurrency
+
   this.pageQueue.concurrency = this.concurrency >= 1 ? Math.floor(this.concurrency) : 1
 }
 
