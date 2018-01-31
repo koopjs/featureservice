@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.5.13] - 2018-01-31
 ### Fixed
 * Parse out html at the end of an otherwise valid response
 
@@ -237,6 +237,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.5.13]: https://github.com/koopjs/featureservice/compare/v1.5.12...v1.5.13
 [1.5.12]: https://github.com/koopjs/featureservice/compare/v1.5.11...v1.5.12
 [1.5.11]: https://github.com/koopjs/featureservice/compare/v1.5.10...v1.5.11
 [1.5.10]: https://github.com/koopjs/featureservice/compare/v1.5.9...v1.5.10
