@@ -433,12 +433,12 @@ test('requesting a page of features and getting an html response tacked on', fun
   var page = Buffer.from(JSON.stringify(features) + "\n<!DOCTYPE html>")
   var fixture = nock('http://servicesqa.arcgis.com')
 
-  fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  fixture.get('/97KLIFOSt5CxbiRK/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
     .times(4)
     .reply(200, function () { return page })
 
-  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', { backoff: 1 })
-  var task = { req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=' }
+  var service = new FeatureService('http://servicesqa.arcgis.com/97KLIFOSt5CxbiRK/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0', { backoff: 1 })
+  var task = { req: 'http://servicesqa.arcgis.com/97KLIFOSt5CxbiRK/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=' }
 
   service._requestFeatures(task, function (err, json) {
     t.notOk(err)
