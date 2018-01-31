@@ -95,6 +95,13 @@ FeatureService.prototype.request = function (url, callback) {
       var pattern = new RegExp(/[^{\[]/) // eslint-disable-line
       if (data.slice(0, 1).match(pattern)) {
         return callback(new Error('Received HTML or plain text when expecting JSON'))
+      } else if (/\n<!DOCTYPE html>(\n|.|\s)*$/.test(data)) {
+        try {
+          json = JSON.parse(data.replace(/\n<!DOCTYPE html>(\n|.|\s)*$/, ''))
+          return callback(null, json)
+        } catch (e) {
+          return callback(new Error('Failed to parse server response'))
+        }
       }
       return callback(new Error('Failed to parse server response'))
     }
@@ -330,7 +337,7 @@ FeatureService.prototype.pages = function (callback) {
 
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
-    if (canPage && this.hosted) return callback(null, this._offsetPages(nPages, size))
+    if (canPage) return callback(null, this._offsetPages(nPages, size))
 
     if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
     this.options.objectIdField = meta.oid

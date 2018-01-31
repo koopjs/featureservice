@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+* Parse out html at the end of an otherwise valid response
+
 ## [1.5.12] - 2017-12-29
 ### Changed
 * Z value is requested when paging
