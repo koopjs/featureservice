@@ -100,7 +100,7 @@ FeatureService.prototype.request = function (url, callback) {
           json = JSON.parse(data.replace(/\n<!DOCTYPE html>(\n|.|\s)*$/, ''))
           return callback(null, json)
         } catch (e) {
-          return callback(new Error('Received HTML or plain text when expecting JSON'))
+          return callback(new Error('Failed to parse server response'))
         }
       }
       return callback(new Error('Failed to parse server response'))

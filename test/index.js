@@ -429,8 +429,8 @@ test('requesting a page of features and getting an html response', function (t) 
 })
 
 test('requesting a page of features and getting an html response tacked on', function (t) {
-  const features = require('./fixtures/features.json')
-  const page = Buffer.from(JSON.stringify(features) + "\n<!DOCTYPE html>")
+  var features = require('./fixtures/features.json')
+  var page = Buffer.from(JSON.stringify(features) + "\n<!DOCTYPE html>")
   var fixture = nock('http://servicesqa.arcgis.com')
 
   fixture.get('/97KLIFOSt5CxbiRI/arcgis/rest/services/QA_data_simple_point_5000/FeatureServer/0/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=1000&resultRecordCount=1000&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
