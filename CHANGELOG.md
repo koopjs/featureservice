@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Added
+* Check for an option `outSR === 'native` and if found request data without `outSR=4326`
+
 ## [1.5.13] - 2018-01-31
 ### Fixed
 * Parse out html at the end of an otherwise valid response
