@@ -24,7 +24,7 @@ var FeatureService = function (url, options) {
   this.options.backoff = this.options.backoff || 1000
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
   this.layer = this.options.layer || service.layer || 0
-  this.outSR = (this.options.outSR === 'native') ? undefined : 4326
+  this.outSR = this.options.outSR || 4326
 
   this.logger = this.options.logger
 
@@ -368,11 +368,10 @@ FeatureService.prototype.pages = function (callback) {
  * Handle feature server request where total number of features can be acquired in a single page
  * @param {*} server
  * @param {*} layer
- * @param {integer} outSR - (optional) wkid of output spatial reference
+ * @param {integer} outSR - wkid of output spatial reference
  */
-function singlePage (server, layer, outSR) {
-  var outSRParam = (outSR) ? '&outSR=' + outSR : ''
-  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&returnZ=true&outFields=*' + outSRParam + '&f=json'].join('')}]
+function singlePage (server, layer, outSR = 4326) {
+  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&returnZ=true&outFields=*&outSR=' + outSR + '&f=json'].join('')}]
 }
 
 /**
@@ -418,11 +417,10 @@ FeatureService.prototype._offsetPages = function (pages, size) {
   var reqs = []
   var resultOffset
   var url = this.server
-  var outSRParam = (this.outSR) ? 'outSR=' + this.outSR + '&' : ''
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
-    var pageUrl = url + '/' + this.layer + '/query?' + outSRParam + 'f=json&outFields=*&where=1=1'
+    var pageUrl = url + '/' + this.layer + '/query?outSR=' + this.outSR + '&f=json&outFields=*&where=1=1'
     if (pages === 1) return [{req: pageUrl + '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}]
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
@@ -444,7 +442,6 @@ FeatureService.prototype._idPages = function (ids, size) {
   var reqs = []
   var oidField = this.options.objectIdField || 'objectId'
   var pages = (ids.length / size)
-  var outSRParam = (this.outSR) ? 'outSR=' + this.outSR + '&' : ''
 
   for (var i = 0; i < pages + 1; i++) {
     var pageIds = ids.splice(0, size)
@@ -452,7 +449,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       var pageMin = pageIds[0]
       var pageMax = pageIds.pop()
       var where = [oidField, ' >= ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
-      var pageUrl = this.server + '/' + (this.layer) + '/query?' + outSRParam + 'where=' + where + '&f=json&outFields=*'
+      var pageUrl = this.server + '/' + (this.layer) + '/query?outSR=' + this.outSR + '&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
@@ -467,7 +464,6 @@ FeatureService.prototype._idPages = function (ids, size) {
  * you could call this objectId queries
  * @param {object} stats - contains the max and min object id
  * @param {integer} size - the size of records to include in each page
- * @param {integer} outSR - (optional) wkid of output spatial reference
  * @returns {object} reqs - contains all the pages for extracting features
  */
 FeatureService.prototype._rangePages = function (stats, size) {
@@ -477,7 +473,6 @@ FeatureService.prototype._rangePages = function (stats, size) {
   var pageMin
   var where
   var objId = this.options.objectIdField
-  var outSRParam = (this.outSR) ? 'outSR=' + this.outSR + '&' : ''
 
   var url = this.server
   var pages = Math.max((stats.max === size) ? stats.max : Math.ceil((stats.max - stats.min) / size), 1)
@@ -492,7 +487,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
     }
     pageMin = stats.min + (size * i)
     where = [objId, '>=', pageMin, '+AND+', objId, '<=', pageMax].join('')
-    pageUrl = url + '/' + (this.layer || 0) + '/query?' + outSRParam + 'where=' + where + '&f=json&outFields=*'
+    pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=' + this.outSR + '&where=' + where + '&f=json&outFields=*'
     pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
