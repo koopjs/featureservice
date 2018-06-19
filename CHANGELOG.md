@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.6.0] - 2018-06-19
 ### Added
 * Check for an option `outSR` and if provided use it to transform data; if no outSR option default to `outSR=4326`
 
@@ -241,6 +241,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.6.0]: https://github.com/koopjs/featureservice/compare/v1.5.13...v1.6.0
 [1.5.13]: https://github.com/koopjs/featureservice/compare/v1.5.12...v1.5.13
 [1.5.12]: https://github.com/koopjs/featureservice/compare/v1.5.11...v1.5.12
 [1.5.11]: https://github.com/koopjs/featureservice/compare/v1.5.10...v1.5.11
