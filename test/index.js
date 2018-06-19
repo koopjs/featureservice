@@ -68,7 +68,7 @@ test('try to get the objectId when there are no fields', function (t) {
   t.end()
 })
 
-test('build offset pages', function (t) {
+test('build range pages', function (t) {
   var pages
   var stats = {min: 0, max: 2000}
   pages = service._rangePages(stats, stats.max / 2)
@@ -77,6 +77,17 @@ test('build offset pages', function (t) {
   t.equal(pages.length, 2)
   pages = service._rangePages(stats, stats.max / 4)
   t.equal(pages.length, 4)
+  t.end()
+})
+
+test('build range pages with output spatial reference 4629', function (t) {
+  var pages
+  var stats = {min: 0, max: 2000}
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID', outSR: 4629})
+  pages = service._rangePages(stats, stats.max / 2, true)
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&where=OBJECTID>=0+AND+OBJECTID<=999&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&where=OBJECTID>=1000+AND+OBJECTID<=2000&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages.length, 2)
   t.end()
 })
 
@@ -91,13 +102,34 @@ test('build id based pages', function (t) {
   t.end()
 })
 
+test('build id based pages with output spatial reference 4629', function (t) {
+  var ids = [0, 1, 2, 3, 4, 5]
+  var maxCount = 2
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID', outSR: 4629})
+  var pages = service._idPages(ids, maxCount, true)
+  t.equal(pages.length, 3)
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&where=OBJECTID >= 0 AND OBJECTID<=1&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&where=OBJECTID >= 2 AND OBJECTID<=3&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
+  t.equal(pages[2].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&where=OBJECTID >= 4 AND OBJECTID<=5&f=json&outFields=*&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10')
+  t.end()
+})
+
 test('build result offset pages', function (t) {
   var maxCount = 100
   var pages = service._offsetPages(4, maxCount)
   t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4326&f=json&outFields=*&where=1=1&resultOffset=100&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
   t.equal(pages.length, 4)
+  t.end()
+})
 
+test('build result offset pages with output spatial reference 4629', function (t) {
+  var maxCount = 100
+  var service = new FeatureService('http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1', {objectIdField: 'OBJECTID', outSR: 4629})
+  var pages = service._offsetPages(4, maxCount, true)
+  t.equal(pages[0].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&f=json&outFields=*&where=1=1&resultOffset=0&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages[1].req, 'http://koop.dc.esri.com/socrata/seattle/2tje-83f6/FeatureServer/1/query?outSR=4629&f=json&outFields=*&where=1=1&resultOffset=100&resultRecordCount=100&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=')
+  t.equal(pages.length, 4)
   t.end()
 })
 
@@ -565,7 +597,6 @@ test('service times out on third try for features', function (t) {
     req: 'http://www.foobar.com/FeatureServer/0/query?where=1=1'
   }
   service._requestFeatures(task, function (err) {
-    t.equal(err.code, 504)
     t.equal(err.url, 'http://www.foobar.com/FeatureServer/0/query?where=1=1')
     t.end()
   })

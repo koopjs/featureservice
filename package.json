@@ -6,7 +6,9 @@
   "bugs": {
     "url": "https://github.com/koopjs/featureservice/issues"
   },
-  "contributors": ["Daniel Fenton"],
+  "contributors": [
+    "Daniel Fenton"
+  ],
   "dependencies": {
     "async": "^2.1.5",
     "xhr-request": "^1.0.1"

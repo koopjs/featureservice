@@ -24,6 +24,7 @@ var FeatureService = function (url, options) {
   this.options.backoff = this.options.backoff || 1000
   this.options.timeOut = this.options.timeOut || (1.5 * 60 * 1000)
   this.layer = this.options.layer || service.layer || 0
+  this.outSR = this.options.outSR || 4326
 
   this.logger = this.options.logger
 
@@ -71,7 +72,7 @@ FeatureService.prototype._console = function (level, message) {
  * @param {string} url
  * @param {function} callback
  */
- // TODO combine this with _requestFeatures
+// TODO combine this with _requestFeatures
 FeatureService.prototype.request = function (url, callback) {
   var json
   // to ensure things are encoded just right for ArcGIS
@@ -324,7 +325,7 @@ FeatureService.prototype.metadata = function (callback) {
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
     if (err) return callback(err)
-    if (meta.count < meta.layer.maxRecordCount && meta.count < this.options.size) return callback(null, singlePage(this.server, this.layer))
+    if (meta.count < meta.layer.maxRecordCount && meta.count < this.options.size) return callback(null, singlePage(this.server, this.layer, this.outSR))
     this.concurrency = this.options.concurrency || Utils.setConcurrency(this.hosted, meta.layer.geometryType)
     this.maxConcurrency = this.concurrency
     this.pageQueue.concurrency = this.concurrency
@@ -363,8 +364,14 @@ FeatureService.prototype.pages = function (callback) {
   }.bind(this))
 }
 
-function singlePage (server, layer) {
-  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&returnZ=true&outFields=*&outSR=4326&f=json'].join('')}]
+/**
+ * Handle feature server request where total number of features can be acquired in a single page
+ * @param {*} server
+ * @param {*} layer
+ * @param {integer} outSR - wkid of output spatial reference
+ */
+function singlePage (server, layer, outSR = 4326) {
+  return [{req: [server, '/', layer, '/query?where=1=1&returnGeometry=true&returnZ=true&outFields=*&outSR=' + outSR + '&f=json'].join('')}]
 }
 
 /**
@@ -413,7 +420,7 @@ FeatureService.prototype._offsetPages = function (pages, size) {
 
   for (var i = 0; i < pages; i++) {
     resultOffset = i * size
-    var pageUrl = url + '/' + this.layer + '/query?outSR=4326&f=json&outFields=*&where=1=1'
+    var pageUrl = url + '/' + this.layer + '/query?outSR=' + this.outSR + '&f=json&outFields=*&where=1=1'
     if (pages === 1) return [{req: pageUrl + '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='}]
     pageUrl += '&resultOffset=' + resultOffset
     pageUrl += '&resultRecordCount=' + size
@@ -442,7 +449,7 @@ FeatureService.prototype._idPages = function (ids, size) {
       var pageMin = pageIds[0]
       var pageMax = pageIds.pop()
       var where = [oidField, ' >= ', pageMin, ' AND ', oidField, '<=', pageMax].join('')
-      var pageUrl = this.server + '/' + (this.layer) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+      var pageUrl = this.server + '/' + (this.layer) + '/query?outSR=' + this.outSR + '&where=' + where + '&f=json&outFields=*'
       pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision=10'
       reqs.push({req: pageUrl})
     }
@@ -480,7 +487,7 @@ FeatureService.prototype._rangePages = function (stats, size) {
     }
     pageMin = stats.min + (size * i)
     where = [objId, '>=', pageMin, '+AND+', objId, '<=', pageMax].join('')
-    pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=4326&where=' + where + '&f=json&outFields=*'
+    pageUrl = url + '/' + (this.layer || 0) + '/query?outSR=' + this.outSR + '&where=' + where + '&f=json&outFields=*'
     pageUrl += '&geometry=&returnGeometry=true&returnZ=true&geometryPrecision='
     reqs.push({req: pageUrl})
   }
