@@ -320,7 +320,7 @@ FeatureService.prototype.metadata = function (callback) {
 
 /**
  * Build an array pages that will cover every feature in the service
- * @param {object} callback - called when the service info comes back
+ * @param {function} callback - called when the service info comes back
  */
 FeatureService.prototype.pages = function (callback) {
   this.metadata(function (err, meta) {
@@ -338,30 +338,50 @@ FeatureService.prototype.pages = function (callback) {
 
     // if the service supports paging, we can use offset to build pages
     var canPage = layer.advancedQueryCapabilities && layer.advancedQueryCapabilities.supportsPagination
-    if (canPage) return callback(null, this._offsetPages(nPages, size))
-
-    if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
-    this.options.objectIdField = meta.oid
-    // if the service supports statistics, we can request the maximum and minimum id to build pages
-    if (layer.supportsStatistics) {
-      this.getObjectIdRange(meta.oid, function (err, stats) {
-      // if this worked then we can pagination using where clauses
-        if (!err) return callback(null, this._rangePages(stats, size))
-        // if it failed, try to request all the ids and split them into pages
-        this.layerIds(function (err, ids) {
-          // either this works or we give up
-          if (err) return callback(err)
-          return callback(null, this._idPages(ids, size))
-        }.bind(this))
+    if (canPage) {
+      // Test pagination by requesting features from second page - supportsPagination has not been reliable
+      var url = this.server + '/0/query?f=json&where=1=1&outFields=*&resultOffset=' + size + '&resultRecordCount=' + size
+      this.request(url, function (err, json) {
+        if (err) return callback(err)
+        // If json features were returned, assume pagination works; otherwise use paging alternatives
+        if (json && json.features && json.features.length > 0) {
+          return callback(null, this._offsetPages(nPages, size))
+        } else {
+          this.pagingAlternatives(meta, size, callback)
+        }
       }.bind(this))
     } else {
-      // this is the last thing we can try
-      this.layerIds(function (err, ids) {
-        if (err) return callback(err)
-        callback(null, this._idPages(ids, size))
-      }.bind(this))
+      this.pagingAlternatives(meta, size, callback)
     }
   }.bind(this))
+}
+
+/**
+ * Build pages when pagination is not supported
+ * @param {function} callback - called when the service info comes back
+ */
+FeatureService.prototype.pagingAlternatives = function (meta, size, callback) {
+  if (!meta.oid) return callback(new Error('ObjectID type field not found, unable to page'))
+  this.options.objectIdField = meta.oid
+  // if the service supports statistics, we can request the maximum and minimum id to build pages
+  if (meta.layer.supportsStatistics) {
+    this.getObjectIdRange(meta.oid, function (err, stats) {
+    // if this worked then we can pagination using where clauses
+      if (!err) return callback(null, this._rangePages(stats, size))
+      // if it failed, try to request all the ids and split them into pages
+      this.layerIds(function (err, ids) {
+        // either this works or we give up
+        if (err) return callback(err)
+        return callback(null, this._idPages(ids, size))
+      }.bind(this))
+    }.bind(this))
+  } else {
+    // this is the last thing we can try
+    this.layerIds(function (err, ids) {
+      if (err) return callback(err)
+      callback(null, this._idPages(ids, size))
+    }.bind(this))
+  }
 }
 
 /**

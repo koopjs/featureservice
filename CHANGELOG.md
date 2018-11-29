@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Changed
+* Double check pagination support with a request for the second page
+
 ## [1.6.0] - 2018-06-19
 ### Added
 * Check for an option `outSR` and if provided use it to transform data; if no outSR option default to `outSR=4326`
