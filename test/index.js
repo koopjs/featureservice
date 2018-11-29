@@ -500,6 +500,7 @@ test('requesting a page of features and getting an empty response', function (t)
 test('building pages for a service that supports pagination', function (t) {
   var countPaging = require('./fixtures/countPaging.json')
   var layerPaging = require('./fixtures/layerPaging.json')
+  var features = require('./fixtures/features.json')
   var fixture = nock('http://services3.arcgis.com')
 
   fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
@@ -507,6 +508,9 @@ test('building pages for a service that supports pagination', function (t) {
 
   fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0?f=json')
   .reply(200, layerPaging)
+
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?f=json&where=1=1&outFields=*&resultOffset=100&resultRecordCount=100')
+  .reply(200, features)
 
   var service = new FeatureService('http://services3.arcgis.com/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
   service.pages(function (err, pages) {
@@ -535,6 +539,33 @@ test('building pages from a layer that does not support pagination', function (t
   service.pages(function (err, pages) {
     t.equal(err, null)
     t.equal(pages.length, 1)
+    t.end()
+  })
+})
+
+test('building pages for a service where metadata indicates supports pagination, but query response suggests otherwise', function (t) {
+  var countFailedPaging = require('./fixtures/countFailedPaging.json')
+  var layerPaging = require('./fixtures/layerPaging.json')
+  var featuresEmpty = require('./fixtures/features-empty.json')
+  var statsFailedPaging = require('./fixtures/statsFailedPaging.json')
+  var fixture = nock('http://services3.arcgis.com')
+
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?where=1=1&returnCountOnly=true&f=json')
+  .reply(200, countFailedPaging)
+
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0?f=json')
+  .reply(200, layerPaging)
+
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?f=json&where=1=1&outFields=*&resultOffset=100&resultRecordCount=100')
+  .reply(200, featuresEmpty)
+
+  fixture.get('/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0/query?f=json&outFields=&outStatistics=%5B%7B%22statisticType%22:%22min%22,%22onStatisticField%22:%22OBJECTID%22,%22outStatisticFieldName%22:%22min_OBJECTID%22%7D,%7B%22statisticType%22:%22max%22,%22onStatisticField%22:%22OBJECTID%22,%22outStatisticFieldName%22:%22max_OBJECTID%22%7D%5D')
+  .reply(200, statsFailedPaging)
+
+  var service = new FeatureService('http://services3.arcgis.com/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
+  service.pages(function (err, pages) {
+    t.equal(err, null)
+    t.equal(pages.length, 156)
     t.end()
   })
 })
