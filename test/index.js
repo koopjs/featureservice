@@ -513,6 +513,7 @@ test('building pages for a service that supports pagination', function (t) {
   .reply(200, features)
 
   var service = new FeatureService('http://services3.arcgis.com/Infrastructure/Railroads_Rail_Crossings_INDOT/MapServer/0', {})
+
   service.pages(function (err, pages) {
     t.equal(err, null)
     t.equal(pages.length, 156)
@@ -702,4 +703,15 @@ test('setting concurrency for an on-premise point service', function (t) {
   t.plan(1)
   var concurrency = Utils.setConcurrency(false, 'esriGeometryPoint')
   t.equal(concurrency, 4)
+})
+
+test('url not parseable as mapserver or featureserver with layer should throw error', function (t) {
+  try {
+    Utils.parseUrl('http://example.com/')
+    t.fail('an error should have been thrown')
+  } catch (err) {
+    t.ok(err instanceof TypeError)
+    t.equals(err.message, 'unable to parse http://example.com/ as a mapserver or featureserver with optional layer')
+  }
+  t.end()
 })
