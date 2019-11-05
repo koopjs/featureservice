@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.6.2] - 2019-11-05
-### Unreleased 
+### Changed
 * Throw `TypeError` when URL is not a FeatureServer or MapServer with optional layer
 
 ## [1.6.1] - 2018-11-28
@@ -249,6 +249,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.6.2]: https://github.com/koopjs/featureservice/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/koopjs/featureservice/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/koopjs/featureservice/compare/v1.5.13...v1.6.0
 [1.5.13]: https://github.com/koopjs/featureservice/compare/v1.5.12...v1.5.13
