@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.3] - 2019-11-05
+### Fixed
+* browserify build
+
 ## [1.6.2] - 2019-11-05
 ### Changed
 * Throw `TypeError` when URL is not a FeatureServer or MapServer with optional layer
@@ -249,6 +253,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Code for requesting data from FeatureServices
 * Tests on most methods
 
+[1.6.3]: https://github.com/koopjs/featureservice/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/koopjs/featureservice/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/koopjs/featureservice/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/koopjs/featureservice/compare/v1.5.13...v1.6.0
