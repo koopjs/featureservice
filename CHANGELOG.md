@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.2] - 2019-11-05
+### Changed
+* Throw `TypeError` when URL is not a FeatureServer or MapServer with optional layer
+
 ## [1.6.1] - 2018-11-28
 ### Changed
 * Double check pagination support with a request for the second page
