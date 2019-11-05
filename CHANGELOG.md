@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.6.2] - 2019-11-05
-### Changed
+### Unreleased 
 * Throw `TypeError` when URL is not a FeatureServer or MapServer with optional layer
 
 ## [1.6.1] - 2018-11-28
